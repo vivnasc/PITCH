@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation, useParams, useNavigate } from 'react-router-dom'
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import Welcome from './pages/Welcome'
@@ -351,7 +351,19 @@ function AppContent() {
     }
   }, [sync, profileData, progressData])
   const adaptive = useAdaptive(profileData.profile)
-  const subscription = useSubscription(profileData.profile, auth.user)
+  const prescriptions = usePrescriptions(profileData.profile?.id)
+
+  // Collect prescribed activity IDs so they bypass tier locks
+  const prescribedActivityIds = useMemo(() => {
+    const ids = new Set()
+    ;(prescriptions?.todayTasks || []).forEach((t) => ids.add(t.activityId))
+    ;(prescriptions?.activeForChild || []).forEach(({ program }) => {
+      ;(program?.activities || []).forEach((a) => ids.add(a.activityId))
+    })
+    return ids
+  }, [prescriptions?.todayTasks, prescriptions?.activeForChild])
+
+  const subscription = useSubscription(profileData.profile, auth.user, prescribedActivityIds)
   const sharing = useProfileSharing(
     auth.user,
     profileData.profiles,
@@ -362,7 +374,6 @@ function AppContent() {
     adaptive.prioritisedCampos,
     progressData.progress,
   )
-  const prescriptions = usePrescriptions(profileData.profile?.id)
 
   // Dynamic title
   useEffect(() => {
@@ -557,6 +568,8 @@ function AppContent() {
               profile={profileData.profile}
               adaptive={adaptive}
               planner={plannerData}
+              subscription={subscription}
+              prescriptions={prescriptions}
             />
           } />
           <Route path="/campo/1" element={<Campo1Bancada {...activityProps} />} />

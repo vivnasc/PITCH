@@ -3,29 +3,27 @@ import { TIERS, isActivityAvailable, isUniverseAvailable, FREE_ACTIVITIES } from
 
 /**
  * Founder emails — these accounts always get full access (family tier).
- * This is the platform creator and should never be locked out.
  */
 const FOUNDER_EMAILS = [
   'viv.saraiva@gmail.com',
 ]
 
 /**
- * Subscription hook — reads the tier from the profile and exposes helpers.
+ * Subscription hook — reads tier + viewMode from profile.
  *
- * The tier is stored on the profile object as `subscriptionTier`.
- * Breno's hardcoded profile gets 'family' tier by default.
- * New profiles start on 'free'.
+ * viewMode determines the UI perspective:
+ * - 'child'     → fun UI, planner, activities
+ * - 'parent'    → dashboard (progress, fichas, competencies), can create home programs
+ * - 'therapist' → full dashboard + professional programs + prescriptions
  *
- * Founder emails (e.g. viv.saraiva@gmail.com) always get 'family' tier
- * regardless of what's stored in the profile.
- *
- * This is a client-side gate only. When Stripe/Paddle is integrated,
- * the tier will be validated server-side on Supabase.
+ * prescribedActivityIds: optional Set of activity IDs from active prescriptions.
+ * These bypass tier locks so children on free tier can still do prescribed therapy.
  */
-export function useSubscription(profile, authUser) {
+export function useSubscription(profile, authUser, prescribedActivityIds) {
   const isFounder = authUser?.email && FOUNDER_EMAILS.includes(authUser.email.toLowerCase())
   const tierId = isFounder ? 'family' : (profile?.subscriptionTier || 'free')
   const tier = TIERS[tierId] || TIERS.free
+  const viewMode = profile?.viewMode || 'child'
 
   const helpers = useMemo(() => ({
     tierId,
@@ -36,12 +34,18 @@ export function useSubscription(profile, authUser) {
     isTherapist: tierId === 'therapist',
     isPaid: tierId !== 'free',
 
+    // View mode — who is using the app right now
+    viewMode,
+    isChildView: viewMode === 'child',
+    isParentView: viewMode === 'parent',
+    isTherapistView: viewMode === 'therapist',
+
     /**
      * Check if an activity is locked for this tier.
-     * Returns true if locked (not available).
+     * Prescribed activities are never locked.
      */
     isActivityLocked(activityId, campoId) {
-      return !isActivityAvailable(activityId, campoId, tierId)
+      return !isActivityAvailable(activityId, campoId, tierId, prescribedActivityIds)
     },
 
     /**
@@ -51,45 +55,35 @@ export function useSubscription(profile, authUser) {
       return !isUniverseAvailable(universeId, tierId)
     },
 
-    /**
-     * Get free activities for a campo.
-     */
     getFreeActivities(campoId) {
       return FREE_ACTIVITIES[campoId] || []
     },
 
-    /**
-     * Get count of available activities for a campo.
-     */
     getAvailableCount(campoId) {
       return tier.activitiesPerCampo
     },
 
-    /**
-     * Check if worksheets/fichas are available.
-     */
     hasFichas: tierId !== 'free',
-
-    /**
-     * Check if weekly challenges are available.
-     */
     hasDesafios: tierId !== 'free',
-
-    /**
-     * Check if shop is available.
-     */
     hasLoja: tierId !== 'free',
 
     /**
-     * Check if dashboard is available.
+     * Dashboard available for Family (simplified) and Therapist (full).
      */
     hasDashboard: tierId !== 'free',
 
     /**
-     * Max profiles allowed.
+     * Professional program creation — therapist tier or parent in parent view.
      */
+    canCreatePrograms: tierId === 'therapist' || (tierId !== 'free' && viewMode === 'parent'),
+
+    /**
+     * Full professional tools (specialization, clinical notes, 20 profiles).
+     */
+    hasProTools: tierId === 'therapist',
+
     maxProfiles: tier.maxProfiles,
-  }), [tierId, tier, isFounder])
+  }), [tierId, tier, isFounder, viewMode, prescribedActivityIds])
 
   return helpers
 }

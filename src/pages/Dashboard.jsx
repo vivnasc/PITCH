@@ -22,6 +22,8 @@ export default function Dashboard({ profile, progress, reviewWorksheet, addEncou
   const [programGoals, setProgramGoals] = useState('')
 
   const isTherapist = subscription?.tierId === 'therapist'
+  const isParentView = subscription?.isParentView
+  const canManagePrograms = subscription?.canCreatePrograms
   const professionalType = profile?.professionalType || 'generic'
   const profInfo = getProfessionalType(professionalType)
   const templates = getTemplatesForProfessional(professionalType)
@@ -228,7 +230,7 @@ Gerado automaticamente por PITCH
         </button>
         <div style={styles.headerRow}>
           <div>
-            <h1 style={styles.pageTitle}>Painel do Educador</h1>
+            <h1 style={styles.pageTitle}>{isTherapist ? 'Painel do Terapeuta' : 'Painel Familiar'}</h1>
             <p style={styles.pageDesc}>Progresso do {profile?.name || 'aluno'}</p>
           </div>
           <button
@@ -245,7 +247,7 @@ Gerado automaticamente por PITCH
         {[
           { id: 'resumo', label: 'Resumo', icon: '📊' },
           { id: 'fichas', label: `Fichas (${pendingSubmissions.length})`, icon: '📬' },
-          ...(isTherapist ? [{ id: 'programas', label: 'Programas', icon: '🩺' }] : []),
+          ...(canManagePrograms ? [{ id: 'programas', label: isTherapist ? 'Programas' : 'Planos', icon: isTherapist ? '🩺' : '📋' }] : []),
           { id: 'palavras', label: 'Vocabulário', icon: '🗣️' },
           { id: 'competencias', label: 'Competências', icon: '🌱' },
         ].map((tab) => (
@@ -413,18 +415,28 @@ Gerado automaticamente por PITCH
         </div>
       )}
 
-      {activeTab === 'programas' && isTherapist && (
+      {activeTab === 'programas' && canManagePrograms && (
         <div style={styles.section} className="animate-fade-in">
-          <div style={styles.profHeader}>
-            <span style={styles.profIcon}>{profInfo?.icon || '👤'}</span>
-            <div>
-              <h3 style={styles.subTitle}>{profInfo?.name || 'Profissional'}</h3>
-              <p style={styles.profDesc}>{profInfo?.description || ''}</p>
+          {isTherapist ? (
+            <div style={styles.profHeader}>
+              <span style={styles.profIcon}>{profInfo?.icon || '👤'}</span>
+              <div>
+                <h3 style={styles.subTitle}>{profInfo?.name || 'Profissional'}</h3>
+                <p style={styles.profDesc}>{profInfo?.description || ''}</p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div style={styles.profHeader}>
+              <span style={styles.profIcon}>👩‍👧</span>
+              <div>
+                <h3 style={styles.subTitle}>Planos Caseiros</h3>
+                <p style={styles.profDesc}>Crie planos de actividades para praticar em casa.</p>
+              </div>
+            </div>
+          )}
 
           {/* Existing programs */}
-          <h4 style={styles.programsSubtitle}>Programas Activos</h4>
+          <h4 style={styles.programsSubtitle}>{isTherapist ? 'Programas Activos' : 'Planos Activos'}</h4>
           {(prescriptions?.programs || []).length === 0 ? (
             <div style={styles.emptyState}>
               <span style={styles.emptyEmoji}>📋</span>

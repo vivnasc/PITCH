@@ -110,9 +110,12 @@ export const FREE_ACTIVITIES = {
 
 /**
  * Check if an activity is available for a tier.
+ * prescribedIds: optional Set of activity IDs prescribed by a therapist —
+ * prescribed activities are always available regardless of tier.
  */
-export function isActivityAvailable(activityId, campoId, tierId) {
+export function isActivityAvailable(activityId, campoId, tierId, prescribedIds) {
   if (tierId === 'family' || tierId === 'therapist') return true
+  if (prescribedIds && prescribedIds.has(activityId)) return true
   const freeList = FREE_ACTIVITIES[campoId]
   return freeList ? freeList.includes(activityId) : false
 }
