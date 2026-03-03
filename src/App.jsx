@@ -41,6 +41,8 @@ import DailyRoutine from './activities/campo4/DailyRoutine'
 import RealWorld from './activities/campo4/RealWorld'
 import Phonics from './activities/campo1/Phonics'
 import SyllableBuilder from './activities/campo1/SyllableBuilder'
+import SentenceBuilder from './activities/campo1/SentenceBuilder'
+import ListeningQuest from './activities/campo1/ListeningQuest'
 import Patterns from './activities/campo2/Patterns'
 import NatureLab from './activities/campo3/NatureLab'
 import ProblemSolving from './activities/campo4/ProblemSolving'
@@ -649,6 +651,8 @@ function AppContent() {
           <Route path="/campo/1/read-score" element={<LockedRoute activityId="read-score" campoId="campo1" subscription={subscription}><ReadScore {...activityProps} /></LockedRoute>} />
           <Route path="/campo/1/phonics" element={<LockedRoute activityId="phonics" campoId="campo1" subscription={subscription}><Phonics {...activityProps} /></LockedRoute>} />
           <Route path="/campo/1/syllable-builder" element={<LockedRoute activityId="syllable-builder" campoId="campo1" subscription={subscription}><SyllableBuilder {...activityProps} /></LockedRoute>} />
+          <Route path="/campo/1/sentence-builder" element={<LockedRoute activityId="sentence-builder" campoId="campo1" subscription={subscription}><SentenceBuilder {...activityProps} /></LockedRoute>} />
+          <Route path="/campo/1/listening-quest" element={<LockedRoute activityId="listening-quest" campoId="campo1" subscription={subscription}><ListeningQuest {...activityProps} /></LockedRoute>} />
 
           {/* Campo 2 activities */}
           <Route path="/campo/2/goal-math" element={<LockedRoute activityId="goal-math" campoId="campo2" subscription={subscription}><GoalMath {...activityProps} /></LockedRoute>} />

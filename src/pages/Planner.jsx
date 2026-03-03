@@ -42,7 +42,7 @@ export default function Planner({
     })
     // Simple lookup: find which campo this activity belongs to
     const campoMap = {
-      'syllable-builder': 1, 'vocab-match': 1, 'phonics': 1, 'read-score': 1, 'dress-player': 1, 'color-kit': 1,
+      'syllable-builder': 1, 'sentence-builder': 1, 'listening-quest': 1, 'vocab-match': 1, 'phonics': 1, 'read-score': 1, 'dress-player': 1, 'color-kit': 1,
       'goal-math': 2, 'clock-reader': 2, 'team-division': 2, 'ticket-shop': 2, 'patterns': 2,
       'flag-match': 3, 'world-explorer': 3, 'body-science': 3, 'weather-match': 3, 'nature-lab': 3,
       'daily-routine': 4, 'real-world': 4, 'problem-solving': 4, 'healthy-choices': 4, 'time-planner': 4,
