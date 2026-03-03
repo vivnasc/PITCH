@@ -471,6 +471,7 @@ function AppContent() {
     adaptive,
     soundEnabled,
     subscription,
+    prescriptions,
   }
 
   // Shared profile route — accessible with or without active profile

@@ -4,9 +4,11 @@ import ActivityCard from '../components/ActivityCard'
 import ProgressBar from '../components/ProgressBar'
 import UpgradePrompt from '../components/UpgradePrompt'
 
-export default function Campo3Mundo({ progress, subscription }) {
+export default function Campo3Mundo({ progress, subscription, prescriptions }) {
   const [showUpgrade, setShowUpgrade] = useState(false)
   const cp = progress.campoProgress.campo3
+  const prescribedIds = (prescriptions?.activeForChild || [])
+    .flatMap((p) => (p.program?.activities || []).map((a) => a.activityId))
 
   return (
     <div style={styles.container} className="animate-fade-in">
@@ -48,6 +50,7 @@ export default function Campo3Mundo({ progress, subscription }) {
               completed={progress.activitiesCompleted[a.id]}
               locked={subscription?.isActivityLocked(a.id, 'campo3')}
               onLockedClick={() => setShowUpgrade(true)}
+              prescribed={prescribedIds.includes(a.id)}
             />
           ))}
         </div>

@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { VOCABULARY_WORDS, VOCABULARY_CATEGORIES } from '../data/vocabulary'
 import { WORKSHEETS } from '../data/worksheets'
 import { COMPETENCY_AREAS, MASTERY_LEVELS, PHASES, getCompetencySummary, getCampoPhases, idToLevel, getPhase } from '../data/competencies'
-import { PROFESSIONAL_TYPES, PROGRAM_TEMPLATES, getProfessionalType, getTemplatesForProfessional } from '../data/therapyTypes'
+import { PROFESSIONAL_TYPES, PROGRAM_TEMPLATES, SPEECH_THERAPY_DOMAINS, getProfessionalType, getTemplatesForProfessional } from '../data/therapyTypes'
+import { CAMPO1_ACTIVITIES, CAMPO2_ACTIVITIES, CAMPO3_ACTIVITIES, CAMPO4_ACTIVITIES, CAMPO5_ACTIVITIES, CAMPO6_ACTIVITIES, CAMPO7_ACTIVITIES } from '../data/activities'
 
 /**
  * Parent/Therapist Dashboard — real progress monitoring, worksheet review,
@@ -36,6 +37,31 @@ export default function Dashboard({ profile, progress, reviewWorksheet, addEncou
   const activitiesCompleted = progress?.activitiesCompleted || {}
   const totalStars = progress?.totalStars || 0
   const totalActivities = Object.keys(activitiesCompleted).length
+
+  // Therapy activity progress
+  const allActivities = [
+    ...CAMPO1_ACTIVITIES, ...CAMPO2_ACTIVITIES, ...CAMPO3_ACTIVITIES,
+    ...CAMPO4_ACTIVITIES, ...CAMPO5_ACTIVITIES, ...CAMPO6_ACTIVITIES,
+    ...CAMPO7_ACTIVITIES,
+  ]
+  const therapyActivities = allActivities.filter((a) => a.therapy)
+  const therapyCompleted = therapyActivities.filter((a) => activitiesCompleted[a.id])
+  const therapyDomainProgress = SPEECH_THERAPY_DOMAINS.map((domain) => {
+    const domainActivities = therapyActivities.filter((a) => a.therapyDomain === domain.id)
+    const completed = domainActivities.filter((a) => activitiesCompleted[a.id])
+    return {
+      ...domain,
+      total: domainActivities.length,
+      completed: completed.length,
+      stars: completed.reduce((sum, a) => sum + (activitiesCompleted[a.id] || 0), 0),
+    }
+  }).filter((d) => d.total > 0)
+
+  // Prescription adherence
+  const activePrescriptions = prescriptions?.activeForChild || []
+  const prescribedActivityIds = activePrescriptions
+    .flatMap((p) => (p.program?.activities || []).map((a) => a.activityId))
+  const prescribedCompleted = prescribedActivityIds.filter((id) => activitiesCompleted[id])
 
   // Category breakdown of learned words
   const wordsByCategory = VOCABULARY_CATEGORIES.map((cat) => {
@@ -124,6 +150,12 @@ Duração: ${profile?.attention?.sessionLength || 15} minutos
 Sensibilidade à frustração: ${profile?.attention?.frustrationSensitivity || 'moderada'}
 Lembrete de pausa: ${profile?.attention?.breakReminder ? 'Sim' : 'Não'}
 
+--- Terapia ---
+Actividades terapêuticas completadas: ${therapyCompleted.length}/${therapyActivities.length}
+${prescribedActivityIds.length > 0 ? `Actividades prescritas feitas: ${prescribedCompleted.length}/${prescribedActivityIds.length}` : 'Sem prescrições activas'}
+${therapyDomainProgress.map((d) => `  ${d.icon} ${d.name}: ${d.completed}/${d.total}`).join('\n')}
+${activePrescriptions.length > 0 ? '\nProgramas activos:\n' + activePrescriptions.map((p) => `  🩺 ${p.program?.name} (${(p.program?.activities || []).length} actividades)`).join('\n') : ''}
+
 --- Fichas ---
 Submetidas: ${submissions.length}
 Pendentes: ${pendingSubmissions.length}
@@ -144,7 +176,7 @@ Gerado automaticamente por PITCH
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-  }, [profile, progress, totalStars, totalActivities, wordsLearned, submissions, pendingSubmissions, reviewedSubmissions, wordsByCategory, campos])
+  }, [profile, progress, totalStars, totalActivities, wordsLearned, submissions, pendingSubmissions, reviewedSubmissions, wordsByCategory, campos, therapyCompleted, therapyActivities, prescribedActivityIds, prescribedCompleted, therapyDomainProgress, activePrescriptions])
 
   const handleSubmitReview = () => {
     if (!reviewingSubmission) return
@@ -347,6 +379,63 @@ Gerado automaticamente por PITCH
               <div style={styles.obsCard}>
                 <span style={styles.obsIcon}>🌱</span>
                 <p style={styles.obsText}>Ainda não completou actividades. O início da jornada!</p>
+              </div>
+            )}
+          </div>
+
+          {/* Therapy progress section */}
+          <h3 style={styles.subTitle}>Progresso Terapêutico</h3>
+          <div style={styles.therapySummary}>
+            <div style={styles.therapyStats}>
+              <div style={styles.therapyStat}>
+                <span style={styles.therapyStatNum}>{therapyCompleted.length}/{therapyActivities.length}</span>
+                <span style={styles.therapyStatLabel}>Actividades terapia</span>
+              </div>
+              {prescribedActivityIds.length > 0 && (
+                <div style={styles.therapyStat}>
+                  <span style={styles.therapyStatNum}>{prescribedCompleted.length}/{prescribedActivityIds.length}</span>
+                  <span style={styles.therapyStatLabel}>Prescritas feitas</span>
+                </div>
+              )}
+            </div>
+            <div style={styles.domainList}>
+              {therapyDomainProgress.map((domain) => {
+                const pct = domain.total > 0 ? Math.round((domain.completed / domain.total) * 100) : 0
+                return (
+                  <div key={domain.id} style={styles.domainRow}>
+                    <div style={styles.domainHeader}>
+                      <span>{domain.icon} {domain.name}</span>
+                      <span style={styles.domainPct}>{domain.completed}/{domain.total}</span>
+                    </div>
+                    <div style={styles.campoBar}>
+                      <div style={{ ...styles.campoFill, width: `${pct}%`, backgroundColor: '#2E7D32' }} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            {activePrescriptions.length > 0 && (
+              <>
+                <h4 style={{ ...styles.subTitle, fontSize: 'var(--font-size-base)', marginTop: 'var(--space-md)' }}>
+                  Programas Activos
+                </h4>
+                {activePrescriptions.map((p) => (
+                  <div key={p.id} style={styles.obsCard}>
+                    <span style={styles.obsIcon}>🩺</span>
+                    <div>
+                      <p style={styles.obsText}><strong>{p.program?.name}</strong></p>
+                      <p style={{ ...styles.obsText, fontSize: '0.8rem', color: '#757575' }}>
+                        {(p.program?.activities || []).length} actividades · {p.program?.professionalName || 'Profissional'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+            {activePrescriptions.length === 0 && therapyCompleted.length === 0 && (
+              <div style={styles.obsCard}>
+                <span style={styles.obsIcon}>📋</span>
+                <p style={styles.obsText}>Sem programas de terapia activos. O terapeuta pode criar um no Painel.</p>
               </div>
             )}
           </div>
@@ -958,6 +1047,57 @@ const styles = {
     fontSize: 'var(--font-size-sm)',
     color: 'var(--color-text)',
     lineHeight: 1.4,
+  },
+  // Therapy section
+  therapySummary: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-sm)',
+  },
+  therapyStats: {
+    display: 'flex',
+    gap: 'var(--space-md)',
+  },
+  therapyStat: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '2px',
+    padding: 'var(--space-md)',
+    backgroundColor: '#E8F5E9',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid #A5D6A7',
+  },
+  therapyStatNum: {
+    fontSize: 'var(--font-size-xl)',
+    fontWeight: 700,
+    color: '#2E7D32',
+  },
+  therapyStatLabel: {
+    fontSize: 'var(--font-size-sm)',
+    color: '#616161',
+    textAlign: 'center',
+  },
+  domainList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-sm)',
+  },
+  domainRow: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+  },
+  domainHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 600,
+  },
+  domainPct: {
+    color: '#2E7D32',
+    fontWeight: 700,
   },
   // Fichas review
   submissionList: {

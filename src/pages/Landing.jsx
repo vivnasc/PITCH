@@ -159,16 +159,21 @@ export default function Landing({ onStart, auth, onLoginSync, syncStatus }) {
       {/* Hero Section */}
       <section style={styles.hero}>
         <div style={styles.heroInner}>
-          <img src="/logos/pitch-robo.png" alt="PITCH mascot" style={styles.heroMascot} />
-          <p style={styles.heroBadge}>De pais para pais</p>
+          <img src="/logos/pitch-completo.png" alt="PITCH — Plataforma de Aprendizagem Inclusiva para Crianças Neurodivergentes" style={styles.heroLogo} />
+          <div style={styles.heroHighlights}>
+            <span style={styles.heroHighlight}>Motor Adaptativo</span>
+            <span style={styles.heroHighlightSep}>|</span>
+            <span style={styles.heroHighlight}>Detecção de Frustração</span>
+            <span style={styles.heroHighlightSep}>|</span>
+            <span style={styles.heroHighlight}>10 Níveis</span>
+            <span style={styles.heroHighlightSep}>|</span>
+            <span style={styles.heroHighlight}>Offline-first</span>
+          </div>
           <h1 style={styles.heroTitle}>
-            Uma plataforma universal que trata cada criança como única.
+            Aprendizagem adaptativa para crianças com necessidades especiais.
           </h1>
-          <p style={styles.heroSubtitle}>
-            <strong>P</strong>lay. <strong>I</strong>nteract. <strong>T</strong>hink. <strong>C</strong>hallenge. <strong>H</strong>one.
-          </p>
           <p style={styles.heroDesc}>
-            Nasceu de uma necessidade real: o nosso filho precisava de uma escola que se adaptasse a ele, não o contrário. Não encontrámos. Então construímos.
+            Perfil individual por competência, não por idade. Avaliação diagnóstica por campo, dificuldade que se ajusta em tempo real, terapia da fala integrada. Construída por pais, para todas as famílias.
           </p>
           {/* Auth: primary action for families */}
           {auth?.configured && !auth?.user && !authMode && (
@@ -760,29 +765,43 @@ const styles = {
     alignItems: 'center',
     gap: '16px',
   },
-  heroMascot: {
-    width: '140px',
-    height: '140px',
+  heroLogo: {
+    width: '280px',
+    maxWidth: '70vw',
+    height: 'auto',
     objectFit: 'contain',
-    filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.1))',
+    filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.12))',
   },
-  heroTitle: {
-    fontSize: 'clamp(1.75rem, 5vw, 2.5rem)',
+  heroHighlights: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  heroHighlight: {
+    fontSize: '0.75rem',
     fontWeight: 700,
     color: '#1B5E20',
-    lineHeight: 1.2,
-  },
-  heroSubtitle: {
-    fontSize: '1rem',
-    color: '#2E7D32',
-    fontWeight: 500,
+    textTransform: 'uppercase',
     letterSpacing: '1px',
+  },
+  heroHighlightSep: {
+    color: '#81C784',
+    fontSize: '0.75rem',
+    fontWeight: 300,
+  },
+  heroTitle: {
+    fontSize: 'clamp(1.5rem, 4.5vw, 2.25rem)',
+    fontWeight: 700,
+    color: '#1B5E20',
+    lineHeight: 1.25,
   },
   heroDesc: {
     fontSize: '1rem',
     color: '#37474F',
     lineHeight: 1.6,
-    maxWidth: '480px',
+    maxWidth: '520px',
   },
   heroBtns: {
     display: 'flex',
@@ -815,16 +834,6 @@ const styles = {
     cursor: 'pointer',
     minHeight: '44px',
     border: '2px solid #2E7D32',
-  },
-  heroBadge: {
-    fontSize: '0.8rem',
-    fontWeight: 700,
-    color: '#1B5E20',
-    backgroundColor: 'rgba(255,255,255,0.7)',
-    padding: '6px 16px',
-    borderRadius: '20px',
-    textTransform: 'uppercase',
-    letterSpacing: '1.5px',
   },
   heroNote: {
     fontSize: '0.8rem',

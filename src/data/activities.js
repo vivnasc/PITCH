@@ -84,6 +84,8 @@ export const CAMPO1_ACTIVITIES = [
     icon: '🔗',
     type: 'vocabulary-match',
     difficulty: 1,
+    therapy: true,
+    therapyDomain: 'functional-vocabulary',
   },
   {
     id: 'dress-player',
@@ -92,6 +94,8 @@ export const CAMPO1_ACTIVITIES = [
     icon: '👕',
     type: 'dress-player',
     difficulty: 1,
+    therapy: true,
+    therapyDomain: 'functional-vocabulary',
   },
   {
     id: 'color-kit',
@@ -100,6 +104,8 @@ export const CAMPO1_ACTIVITIES = [
     icon: '🎨',
     type: 'color-kit',
     difficulty: 1,
+    therapy: true,
+    therapyDomain: 'functional-vocabulary',
   },
   {
     id: 'read-score',
@@ -108,6 +114,8 @@ export const CAMPO1_ACTIVITIES = [
     icon: '📊',
     type: 'read-score',
     difficulty: 2,
+    therapy: true,
+    therapyDomain: 'auditory-comprehension',
   },
   {
     id: 'phonics',
@@ -116,6 +124,8 @@ export const CAMPO1_ACTIVITIES = [
     icon: '🔤',
     type: 'phonics',
     difficulty: 1,
+    therapy: true,
+    therapyDomain: 'articulation-phonology',
   },
   {
     id: 'syllable-builder',
@@ -216,6 +226,8 @@ export const CAMPO3_ACTIVITIES = [
     icon: '🫀',
     type: 'body-science',
     difficulty: 2,
+    therapy: true,
+    therapyDomain: 'functional-vocabulary',
   },
   {
     id: 'weather-match',
@@ -224,6 +236,8 @@ export const CAMPO3_ACTIVITIES = [
     icon: '🌤️',
     type: 'weather-match',
     difficulty: 1,
+    therapy: true,
+    therapyDomain: 'functional-vocabulary',
   },
   {
     id: 'nature-lab',
@@ -286,6 +300,8 @@ export const CAMPO5_ACTIVITIES = [
     icon: '📖',
     type: 'story-builder',
     difficulty: 1,
+    therapy: true,
+    therapyDomain: 'narrative',
   },
   {
     id: 'music-maker',
@@ -294,6 +310,8 @@ export const CAMPO5_ACTIVITIES = [
     icon: '🎵',
     type: 'music-maker',
     difficulty: 1,
+    therapy: true,
+    therapyDomain: 'prosody-fluency',
   },
   {
     id: 'color-canvas',
@@ -318,6 +336,8 @@ export const CAMPO5_ACTIVITIES = [
     icon: '🔊',
     type: 'sound-story',
     difficulty: 2,
+    therapy: true,
+    therapyDomain: 'narrative',
   },
 ]
 
@@ -329,6 +349,8 @@ export const CAMPO7_ACTIVITIES = [
     icon: '📖',
     type: 'contos-vivos',
     difficulty: 1,
+    therapy: true,
+    therapyDomain: 'auditory-comprehension',
   },
   {
     id: 'poesia-sonora',
@@ -337,6 +359,8 @@ export const CAMPO7_ACTIVITIES = [
     icon: '🎙️',
     type: 'poesia-sonora',
     difficulty: 1,
+    therapy: true,
+    therapyDomain: 'articulation-phonology',
   },
   {
     id: 'teatro-vozes',
@@ -345,6 +369,8 @@ export const CAMPO7_ACTIVITIES = [
     icon: '🎭',
     type: 'teatro-vozes',
     difficulty: 2,
+    therapy: true,
+    therapyDomain: 'social-pragmatics',
   },
   {
     id: 'fabulas-mundo',
@@ -353,6 +379,8 @@ export const CAMPO7_ACTIVITIES = [
     icon: '🌍',
     type: 'fabulas-mundo',
     difficulty: 2,
+    therapy: true,
+    therapyDomain: 'auditory-comprehension',
   },
   {
     id: 'meu-conto',
@@ -361,6 +389,8 @@ export const CAMPO7_ACTIVITIES = [
     icon: '✍️',
     type: 'meu-conto',
     difficulty: 1,
+    therapy: true,
+    therapyDomain: 'sentence-building',
   },
 ]
 
@@ -372,6 +402,8 @@ export const CAMPO6_ACTIVITIES = [
     icon: '🟨',
     type: 'emotion-cards',
     difficulty: 1,
+    therapy: true,
+    therapyDomain: 'functional-communication',
   },
   {
     id: 'fair-play',
@@ -380,6 +412,8 @@ export const CAMPO6_ACTIVITIES = [
     icon: '🤝',
     type: 'fair-play',
     difficulty: 1,
+    therapy: true,
+    therapyDomain: 'social-pragmatics',
   },
   {
     id: 'social-detective',
@@ -388,6 +422,8 @@ export const CAMPO6_ACTIVITIES = [
     icon: '🔍',
     type: 'social-detective',
     difficulty: 2,
+    therapy: true,
+    therapyDomain: 'social-pragmatics',
   },
   {
     id: 'turn-talk',
@@ -396,6 +432,8 @@ export const CAMPO6_ACTIVITIES = [
     icon: '💬',
     type: 'turn-talk',
     difficulty: 1,
+    therapy: true,
+    therapyDomain: 'social-pragmatics',
   },
   {
     id: 'calm-toolkit',
