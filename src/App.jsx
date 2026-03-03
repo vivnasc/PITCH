@@ -347,7 +347,7 @@ function AppContent() {
     }
   }, [sync, profileData, progressData])
   const adaptive = useAdaptive(profileData.profile)
-  const subscription = useSubscription(profileData.profile)
+  const subscription = useSubscription(profileData.profile, auth.user)
   const sharing = useProfileSharing(
     auth.user,
     profileData.profiles,
@@ -610,6 +610,7 @@ function AppContent() {
               removeRealReward={profileData.removeRealReward}
               subscription={subscription}
               sharing={sharing}
+              auth={auth}
             />
           } />
 

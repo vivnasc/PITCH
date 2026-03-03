@@ -2,22 +2,35 @@ import { useMemo } from 'react'
 import { TIERS, isActivityAvailable, isUniverseAvailable, FREE_ACTIVITIES } from '../data/tiers'
 
 /**
+ * Founder emails — these accounts always get full access (family tier).
+ * This is the platform creator and should never be locked out.
+ */
+const FOUNDER_EMAILS = [
+  'viv.saraiva@gmail.com',
+]
+
+/**
  * Subscription hook — reads the tier from the profile and exposes helpers.
  *
  * The tier is stored on the profile object as `subscriptionTier`.
  * Breno's hardcoded profile gets 'family' tier by default.
  * New profiles start on 'free'.
  *
+ * Founder emails (e.g. viv.saraiva@gmail.com) always get 'family' tier
+ * regardless of what's stored in the profile.
+ *
  * This is a client-side gate only. When Stripe/Paddle is integrated,
  * the tier will be validated server-side on Supabase.
  */
-export function useSubscription(profile) {
-  const tierId = profile?.subscriptionTier || 'free'
+export function useSubscription(profile, authUser) {
+  const isFounder = authUser?.email && FOUNDER_EMAILS.includes(authUser.email.toLowerCase())
+  const tierId = isFounder ? 'family' : (profile?.subscriptionTier || 'free')
   const tier = TIERS[tierId] || TIERS.free
 
   const helpers = useMemo(() => ({
     tierId,
     tier,
+    isFounder: !!isFounder,
     isFree: tierId === 'free',
     isFamily: tierId === 'family',
     isTherapist: tierId === 'therapist',
@@ -76,7 +89,7 @@ export function useSubscription(profile) {
      * Max profiles allowed.
      */
     maxProfiles: tier.maxProfiles,
-  }), [tierId, tier])
+  }), [tierId, tier, isFounder])
 
   return helpers
 }

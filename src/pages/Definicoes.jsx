@@ -11,7 +11,7 @@ import { exportAllData, importData } from '../hooks/useStorage'
  */
 export default function Definicoes({
   profile, profiles, updateProfile, resetProfile, deleteProfile,
-  addRealReward, removeRealReward, subscription, sharing,
+  addRealReward, removeRealReward, subscription, sharing, auth,
 }) {
   const navigate = useNavigate()
   const [showReset, setShowReset] = useState(false)
@@ -99,6 +99,53 @@ export default function Definicoes({
           </div>
         </section>
       )}
+
+      {/* Account / Logout */}
+      <section style={styles.section}>
+        <h2 style={styles.sectionTitle}>Conta</h2>
+        <div style={styles.accountCard}>
+          {auth?.configured && auth?.user ? (
+            <>
+              <div style={styles.accountRow}>
+                <span style={styles.accountIcon}>☁️</span>
+                <div style={styles.accountInfo}>
+                  <span style={styles.accountEmail}>{auth.user.email}</span>
+                  <span style={styles.accountHint}>
+                    Dados sincronizados na cloud
+                    {subscription?.isFounder && ' — Conta fundadora'}
+                  </span>
+                </div>
+              </div>
+              <button
+                style={styles.signOutBtn}
+                onClick={auth.signOut}
+              >
+                Sair da conta
+              </button>
+            </>
+          ) : auth?.configured ? (
+            <div style={styles.accountRow}>
+              <span style={styles.accountIcon}>🔑</span>
+              <div style={styles.accountInfo}>
+                <span style={styles.accountHint}>Sem conta — dados apenas neste dispositivo</span>
+              </div>
+              <button
+                style={styles.signInBtn}
+                onClick={() => navigate('/landing')}
+              >
+                Entrar
+              </button>
+            </div>
+          ) : (
+            <div style={styles.accountRow}>
+              <span style={styles.accountIcon}>📱</span>
+              <div style={styles.accountInfo}>
+                <span style={styles.accountHint}>Dados guardados neste dispositivo</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Learning Needs */}
       <section style={styles.section}>
@@ -1152,5 +1199,62 @@ const styles = {
     fontSize: 'var(--font-size-sm)',
     color: 'var(--color-text-secondary)',
     lineHeight: 1.4,
+  },
+  // Account section
+  accountCard: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-sm)',
+    padding: 'var(--space-md)',
+    backgroundColor: 'var(--color-bg)',
+    borderRadius: 'var(--radius-md)',
+  },
+  accountRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-sm)',
+  },
+  accountIcon: {
+    fontSize: '1.5rem',
+    flexShrink: 0,
+  },
+  accountInfo: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  accountEmail: {
+    fontWeight: 700,
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text)',
+  },
+  accountHint: {
+    fontSize: '0.75rem',
+    color: 'var(--color-text-secondary)',
+    lineHeight: 1.3,
+  },
+  signOutBtn: {
+    width: '100%',
+    padding: 'var(--space-sm) var(--space-md)',
+    backgroundColor: '#FFEBEE',
+    border: '1px solid #C62828',
+    borderRadius: 'var(--radius-md)',
+    cursor: 'pointer',
+    fontWeight: 700,
+    fontFamily: 'inherit',
+    fontSize: 'var(--font-size-sm)',
+    color: '#C62828',
+  },
+  signInBtn: {
+    padding: 'var(--space-xs) var(--space-md)',
+    backgroundColor: 'var(--color-primary)',
+    color: 'white',
+    border: 'none',
+    borderRadius: 'var(--radius-md)',
+    cursor: 'pointer',
+    fontWeight: 700,
+    fontFamily: 'inherit',
+    fontSize: 'var(--font-size-sm)',
+    flexShrink: 0,
   },
 }
