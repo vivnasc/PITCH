@@ -6,6 +6,7 @@ import {
   CAMPO4_ACTIVITIES,
   CAMPO5_ACTIVITIES,
   CAMPO6_ACTIVITIES,
+  CAMPO7_ACTIVITIES,
 } from '../data/activities'
 
 const STORAGE_PREFIX = 'pitch-planner-'
@@ -17,6 +18,7 @@ const ALL_ACTIVITIES = [
   ...CAMPO4_ACTIVITIES.map((a) => ({ ...a, campo: 'campo4', path: `/campo/4/${a.id}` })),
   ...CAMPO5_ACTIVITIES.map((a) => ({ ...a, campo: 'campo5', path: `/campo/5/${a.id}` })),
   ...CAMPO6_ACTIVITIES.map((a) => ({ ...a, campo: 'campo6', path: `/campo/6/${a.id}` })),
+  ...CAMPO7_ACTIVITIES.map((a) => ({ ...a, campo: 'campo7', path: `/campo/7/${a.id}` })),
 ]
 
 function todayKey() {

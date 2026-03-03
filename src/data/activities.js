@@ -117,6 +117,15 @@ export const CAMPO1_ACTIVITIES = [
     type: 'phonics',
     difficulty: 1,
   },
+  {
+    id: 'syllable-builder',
+    name: 'Sílabas',
+    description: 'Terapia da fala: identifica, completa e constrói palavras com sílabas.',
+    icon: '🗣️',
+    type: 'syllable-builder',
+    difficulty: 1,
+    therapy: true,
+  },
 ]
 
 export const CAMPO2_ACTIVITIES = [

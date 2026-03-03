@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { AVATARS } from '../hooks/useProfile'
 import { UNIVERSES } from '../data/universes'
 import { TIERS } from '../data/tiers'
+import { PROFESSIONAL_TYPES } from '../data/therapyTypes'
 import { exportAllData, importData } from '../hooks/useStorage'
 
 /**
@@ -146,6 +147,36 @@ export default function Definicoes({
           )}
         </div>
       </section>
+
+      {/* Professional Type (therapist tier only) */}
+      {subscription?.isTherapist && (
+        <section style={styles.section}>
+          <h2 style={styles.sectionTitle}>Especialização Profissional</h2>
+          <p style={styles.rewardHint}>
+            Seleccione a sua área para ver templates de programas e actividades recomendadas.
+          </p>
+          <div style={styles.professionalGrid}>
+            {PROFESSIONAL_TYPES.map((pt) => (
+              <button
+                key={pt.id}
+                style={{
+                  ...styles.professionalCard,
+                  ...(profile?.professionalType === pt.id ? styles.professionalCardActive : {}),
+                }}
+                onClick={() => updateProfile({ professionalType: pt.id })}
+              >
+                <span style={styles.professionalIcon}>{pt.icon}</span>
+                <span style={styles.professionalName}>{pt.name}</span>
+              </button>
+            ))}
+          </div>
+          {profile?.professionalType && (
+            <p style={styles.professionalDesc}>
+              {PROFESSIONAL_TYPES.find((p) => p.id === profile.professionalType)?.description}
+            </p>
+          )}
+        </section>
+      )}
 
       {/* Learning Needs */}
       <section style={styles.section}>
@@ -1256,5 +1287,44 @@ const styles = {
     fontFamily: 'inherit',
     fontSize: 'var(--font-size-sm)',
     flexShrink: 0,
+  },
+  // Professional type
+  professionalGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 'var(--space-sm)',
+  },
+  professionalCard: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '4px',
+    padding: 'var(--space-md)',
+    backgroundColor: 'var(--color-bg)',
+    border: '2px solid var(--color-border)',
+    borderRadius: 'var(--radius-md)',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    transition: 'border-color 0.2s ease, background-color 0.2s ease',
+  },
+  professionalCardActive: {
+    borderColor: '#6A1B9A',
+    backgroundColor: '#F3E5F5',
+  },
+  professionalIcon: {
+    fontSize: '1.8rem',
+  },
+  professionalName: {
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 700,
+    textAlign: 'center',
+    color: 'var(--color-text)',
+  },
+  professionalDesc: {
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text-secondary)',
+    fontStyle: 'italic',
+    lineHeight: 1.4,
+    padding: 'var(--space-xs) 0',
   },
 }

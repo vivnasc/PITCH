@@ -40,6 +40,7 @@ import WeatherMatch from './activities/campo3/WeatherMatch'
 import DailyRoutine from './activities/campo4/DailyRoutine'
 import RealWorld from './activities/campo4/RealWorld'
 import Phonics from './activities/campo1/Phonics'
+import SyllableBuilder from './activities/campo1/SyllableBuilder'
 import Patterns from './activities/campo2/Patterns'
 import NatureLab from './activities/campo3/NatureLab'
 import ProblemSolving from './activities/campo4/ProblemSolving'
@@ -70,6 +71,7 @@ import { usePlanner } from './hooks/usePlanner'
 import { useAuth } from './hooks/useAuth'
 import { useSync } from './hooks/useSync'
 import { useSubscription } from './hooks/useSubscription'
+import { usePrescriptions } from './hooks/usePrescriptions'
 import { isActivityAvailable } from './data/tiers'
 import { useProfileSharing } from './hooks/useProfileSharing'
 import { setTTSMode } from './hooks/useTTS'
@@ -358,6 +360,7 @@ function AppContent() {
     adaptive.prioritisedCampos,
     progressData.progress,
   )
+  const prescriptions = usePrescriptions(profileData.profile?.id)
 
   // Dynamic title
   useEffect(() => {
@@ -624,6 +627,7 @@ function AppContent() {
               progress={progressData.progress}
               planner={plannerData}
               adaptive={adaptive}
+              prescriptions={prescriptions}
             />
           } />
 
@@ -633,6 +637,8 @@ function AppContent() {
               progress={progressData.progress}
               reviewWorksheet={profileData.reviewWorksheet}
               addEncouragement={profileData.addEncouragement}
+              prescriptions={prescriptions}
+              subscription={subscription}
             />
           } />
 
@@ -642,6 +648,7 @@ function AppContent() {
           <Route path="/campo/1/color-kit" element={<LockedRoute activityId="color-kit" campoId="campo1" subscription={subscription}><ColorKit {...activityProps} /></LockedRoute>} />
           <Route path="/campo/1/read-score" element={<LockedRoute activityId="read-score" campoId="campo1" subscription={subscription}><ReadScore {...activityProps} /></LockedRoute>} />
           <Route path="/campo/1/phonics" element={<LockedRoute activityId="phonics" campoId="campo1" subscription={subscription}><Phonics {...activityProps} /></LockedRoute>} />
+          <Route path="/campo/1/syllable-builder" element={<LockedRoute activityId="syllable-builder" campoId="campo1" subscription={subscription}><SyllableBuilder {...activityProps} /></LockedRoute>} />
 
           {/* Campo 2 activities */}
           <Route path="/campo/2/goal-math" element={<LockedRoute activityId="goal-math" campoId="campo2" subscription={subscription}><GoalMath {...activityProps} /></LockedRoute>} />

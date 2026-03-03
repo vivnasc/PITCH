@@ -68,6 +68,9 @@ const DEFAULT_PROFILE = {
   // Subscription tier: 'free', 'family', or 'therapist'
   subscriptionTier: 'free',
 
+  // Professional type (for therapist accounts): 'speech-therapist', 'occupational-therapist', etc.
+  professionalType: null,
+
   communication: {
     usesVisualSupports: false,
     prefersSimpleLanguage: false,

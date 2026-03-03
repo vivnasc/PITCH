@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CAMPO_INFO } from '../data/activities'
+import { PROFESSIONAL_TYPES } from '../data/therapyTypes'
 
 /**
  * Planner — daily/weekly activity calendar.
- * Shows today's recommended activities and the week's history.
+ * Shows today's recommended activities, prescribed therapy tasks,
+ * and the week's history.
  * Parent/therapist can adjust the number of daily activities.
  */
 export default function Planner({
@@ -12,6 +14,7 @@ export default function Planner({
   progress,
   planner,
   adaptive,
+  prescriptions,
 }) {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('hoje')
@@ -19,6 +22,37 @@ export default function Planner({
 
   const playerName = profile?.name || 'Criança'
   const universe = adaptive?.universe
+
+  // Prescribed therapy tasks
+  const therapyTasks = prescriptions?.todayTasks || []
+  const hasTherapy = therapyTasks.length > 0
+  const therapyDone = therapyTasks.filter((t) => t.isDone).length
+  const therapyTotal = therapyTasks.length
+
+  const getProfessionalIcon = (type) => {
+    const prof = PROFESSIONAL_TYPES.find((p) => p.id === type)
+    return prof?.icon || '👤'
+  }
+
+  const getActivityPath = (activityId) => {
+    // Map activity IDs to their campo routes
+    const allActivities = CAMPO_INFO.flatMap((campo, idx) => {
+      const campoNum = idx + 1
+      return [{ campoNum }]
+    })
+    // Simple lookup: find which campo this activity belongs to
+    const campoMap = {
+      'syllable-builder': 1, 'vocab-match': 1, 'phonics': 1, 'read-score': 1, 'dress-player': 1, 'color-kit': 1,
+      'goal-math': 2, 'clock-reader': 2, 'team-division': 2, 'ticket-shop': 2, 'patterns': 2,
+      'flag-match': 3, 'world-explorer': 3, 'body-science': 3, 'weather-match': 3, 'nature-lab': 3,
+      'daily-routine': 4, 'real-world': 4, 'problem-solving': 4, 'healthy-choices': 4, 'time-planner': 4,
+      'story-builder': 5, 'music-maker': 5, 'color-canvas': 5, 'pattern-art': 5, 'sound-story': 5,
+      'emotion-cards': 6, 'fair-play': 6, 'social-detective': 6, 'turn-talk': 6, 'calm-toolkit': 6,
+      'contos-vivos': 7, 'poesia-sonora': 7, 'teatro-vozes': 7, 'fabulas-mundo': 7, 'meu-conto': 7,
+    }
+    const campoNum = campoMap[activityId]
+    return campoNum ? `/campo/${campoNum}/${activityId}` : null
+  }
 
   const {
     todayPlan,
@@ -127,6 +161,59 @@ export default function Planner({
               <button style={styles.generateBtn} onClick={handleGenerate}>
                 {universe?.icon || '⚽'} Gerar Plano de Hoje
               </button>
+
+              {/* Show therapy tasks even without a daily plan */}
+              {hasTherapy && (
+                <div style={{ ...styles.therapySection, marginTop: '16px', width: '100%' }}>
+                  <h3 style={styles.therapySectionTitle}>
+                    🩺 Terapias para Hoje
+                  </h3>
+                  <div style={styles.activityList}>
+                    {therapyTasks.map((task) => {
+                      const path = getActivityPath(task.activityId)
+                      return (
+                        <button
+                          key={`${task.prescriptionId}-${task.activityId}`}
+                          style={{
+                            ...styles.activityCard,
+                            ...styles.therapyCard,
+                            ...(task.isDone ? styles.activityDone : {}),
+                          }}
+                          onClick={() => {
+                            if (!task.isDone && path) {
+                              prescriptions.markDone(task.prescriptionId, task.activityId)
+                              navigate(path)
+                            }
+                          }}
+                          disabled={task.isDone}
+                        >
+                          <div style={styles.activityOrder}>
+                            {task.isDone ? (
+                              <span style={styles.checkMark}>✓</span>
+                            ) : (
+                              <span style={{ fontSize: '1rem' }}>
+                                {getProfessionalIcon(task.professionalType)}
+                              </span>
+                            )}
+                          </div>
+                          <div style={styles.activityInfo}>
+                            <span style={styles.activityName}>
+                              {task.activityId.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                            </span>
+                            <span style={styles.therapyMeta}>
+                              {task.programName}
+                              {task.professionalName && ` · ${task.professionalName}`}
+                            </span>
+                          </div>
+                          {!task.isDone && path && (
+                            <span style={styles.goArrow}>→</span>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <>
@@ -205,6 +292,69 @@ export default function Planner({
                   )
                 })}
               </div>
+
+              {/* Prescribed Therapy Tasks */}
+              {hasTherapy && (
+                <div style={styles.therapySection}>
+                  <h3 style={styles.therapySectionTitle}>
+                    🩺 Terapias Prescritas
+                  </h3>
+                  <p style={styles.therapyHint}>
+                    {therapyDone === therapyTotal && therapyTotal > 0
+                      ? 'Todas as terapias de hoje feitas!'
+                      : `${therapyDone} de ${therapyTotal} terapias feitas`}
+                  </p>
+                  <div style={styles.activityList}>
+                    {therapyTasks.map((task) => {
+                      const path = getActivityPath(task.activityId)
+                      return (
+                        <button
+                          key={`${task.prescriptionId}-${task.activityId}`}
+                          style={{
+                            ...styles.activityCard,
+                            ...styles.therapyCard,
+                            ...(task.isDone ? styles.activityDone : {}),
+                          }}
+                          onClick={() => {
+                            if (!task.isDone && path) {
+                              prescriptions.markDone(task.prescriptionId, task.activityId)
+                              navigate(path)
+                            }
+                          }}
+                          disabled={task.isDone}
+                        >
+                          <div style={styles.activityOrder}>
+                            {task.isDone ? (
+                              <span style={styles.checkMark}>✓</span>
+                            ) : (
+                              <span style={{ fontSize: '1rem' }}>
+                                {getProfessionalIcon(task.professionalType)}
+                              </span>
+                            )}
+                          </div>
+                          <div style={styles.activityInfo}>
+                            <span style={styles.activityName}>
+                              {task.activityId.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                            </span>
+                            <span style={styles.therapyMeta}>
+                              {task.programName}
+                              {task.professionalName && ` · ${task.professionalName}`}
+                            </span>
+                            {task.notes && (
+                              <span style={styles.therapyNotes}>
+                                📝 {task.notes}
+                              </span>
+                            )}
+                          </div>
+                          {!task.isDone && path && (
+                            <span style={styles.goArrow}>→</span>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Actions */}
               <div style={styles.actions}>
@@ -700,5 +850,39 @@ const styles = {
   emptyWeekText: {
     color: 'var(--color-text-secondary)',
     fontSize: 'var(--font-size-sm)',
+  },
+  // Therapy section
+  therapySection: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-sm)',
+    padding: 'var(--space-md)',
+    backgroundColor: '#FFF3E0',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid #FFE0B2',
+  },
+  therapySectionTitle: {
+    fontSize: 'var(--font-size-base)',
+    fontWeight: 700,
+    color: '#E65100',
+  },
+  therapyHint: {
+    fontSize: 'var(--font-size-sm)',
+    color: '#BF360C',
+  },
+  therapyCard: {
+    borderLeftColor: '#FF9800',
+    backgroundColor: '#FFF8E1',
+  },
+  therapyMeta: {
+    fontSize: '0.7rem',
+    color: '#E65100',
+    fontWeight: 600,
+  },
+  therapyNotes: {
+    fontSize: '0.7rem',
+    color: 'var(--color-text-secondary)',
+    fontStyle: 'italic',
+    marginTop: '2px',
   },
 }
