@@ -130,6 +130,68 @@ export default function Home({ progress, profile, adaptive, planner, subscriptio
         </section>
       )}
 
+      {/* Stats Row — child progress at a glance */}
+      {!isParentOrTherapist && (
+        <div style={styles.statsRow}>
+          <button style={styles.stat} onClick={() => navigate('/progresso')}>
+            <span style={styles.statValue}>{totalStars}</span>
+            <span style={styles.statLabel}>Estrelas</span>
+          </button>
+          <button style={styles.stat} onClick={() => navigate('/progresso')}>
+            <span style={styles.statValue}>{totalWords}</span>
+            <span style={styles.statLabel}>Palavras</span>
+          </button>
+          <button style={styles.stat} onClick={() => navigate('/progresso')}>
+            <span style={styles.statValue}>{progress.activitiesCompleted || 0}</span>
+            <span style={styles.statLabel}>Concluídas</span>
+          </button>
+          <button style={styles.stat} onClick={() => navigate('/progresso')}>
+            <span style={styles.statValue}>{progress.trophies?.length || 0}</span>
+            <span style={styles.statLabel}>Troféus</span>
+          </button>
+        </div>
+      )}
+
+      {/* Quick Actions */}
+      <div style={styles.quickActions}>
+        <button style={styles.quickBtn} className="btn-press" onClick={() => navigate('/progresso')}>
+          <span style={styles.quickIcon}>📊</span>
+          <span style={styles.quickLabel}>Progresso</span>
+        </button>
+        <button style={styles.quickBtn} className="btn-press" onClick={() => navigate('/loja')}>
+          <span style={styles.quickIcon}>🛒</span>
+          <span style={styles.quickLabel}>Loja</span>
+        </button>
+        <button style={styles.quickBtn} className="btn-press" onClick={() => navigate('/fichas')}>
+          <span style={styles.quickIcon}>📝</span>
+          <span style={styles.quickLabel}>Fichas</span>
+        </button>
+        <button style={styles.quickBtn} className="btn-press" onClick={() => navigate('/definicoes')}>
+          <span style={styles.quickIcon}>⚙️</span>
+          <span style={styles.quickLabel}>Definições</span>
+        </button>
+      </div>
+
+      {/* Goals recommendation */}
+      {hasGoals && needsAreas.length > 0 && (
+        <div style={styles.goalsCard}>
+          <span style={styles.goalsIcon}>🎯</span>
+          <div>
+            <p style={styles.goalsTitle}>Foco recomendado</p>
+            <p style={styles.goalsText}>
+              {needsAreas.slice(0, 3).map((a) =>
+                a === 'reading' ? 'Leitura' :
+                a === 'math' ? 'Matemática' :
+                a === 'attention' ? 'Atenção' :
+                a === 'social' ? 'Social' :
+                a === 'speech' ? 'Fala' :
+                a
+              ).join(', ')}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Today's Plan — the main focus for the child */}
       {planner && (
         <section style={styles.todayPlan}>
@@ -419,11 +481,18 @@ const styles = {
     backgroundColor: 'var(--color-surface)',
     borderRadius: 'var(--radius-md)',
     boxShadow: 'var(--shadow-sm)',
+    border: '1px solid var(--color-border)',
   },
   stat: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    padding: 'var(--space-xs)',
+    minWidth: '60px',
   },
   statValue: {
     fontSize: 'var(--font-size-lg)',
@@ -434,6 +503,7 @@ const styles = {
     fontSize: '0.65rem',
     color: 'var(--color-text-secondary)',
     textTransform: 'uppercase',
+    fontWeight: 600,
   },
   // Goals recommendation card
   goalsCard: {
@@ -459,13 +529,15 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     gap: '4px',
-    padding: 'var(--space-sm)',
+    padding: 'var(--space-sm) var(--space-xs)',
     backgroundColor: 'var(--color-surface)',
     border: '1px solid var(--color-border)',
     borderRadius: 'var(--radius-md)',
     cursor: 'pointer',
     transition: 'all 0.2s',
     fontFamily: 'inherit',
+    minHeight: '64px',
+    justifyContent: 'center',
   },
   quickIcon: { fontSize: '1.5rem' },
   quickLabel: {
@@ -536,28 +608,28 @@ const styles = {
   },
   campoCompactGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
+    gridTemplateColumns: 'repeat(2, 1fr)',
     gap: 'var(--space-sm)',
   },
   campoCompactBtn: {
     display: 'flex',
-    flexDirection: 'column',
     alignItems: 'center',
-    gap: '4px',
-    padding: 'var(--space-sm)',
+    gap: 'var(--space-sm)',
+    padding: 'var(--space-md)',
     backgroundColor: 'var(--color-surface)',
     border: '2px solid',
     borderRadius: 'var(--radius-md)',
     cursor: 'pointer',
     fontFamily: 'inherit',
+    textAlign: 'left',
+    minHeight: '56px',
   },
-  campoCompactIcon: { fontSize: '1.5rem' },
+  campoCompactIcon: { fontSize: '1.5rem', flexShrink: 0 },
   campoCompactName: {
-    fontSize: '0.6rem',
+    fontSize: '0.7rem',
     fontWeight: 700,
     color: 'var(--color-text)',
     textTransform: 'uppercase',
-    textAlign: 'center',
   },
   // Today's Plan
   todayPlan: {

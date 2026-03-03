@@ -79,11 +79,29 @@ const TESTIMONIALS = [
 
 export default function Landing({ onStart, auth, onLoginSync, syncStatus }) {
   const navigate = useNavigate()
-  const [authMode, setAuthMode] = useState(null) // null | 'login' | 'register'
+  const [authMode, setAuthMode] = useState(null) // null | 'login' | 'register' | 'professional' | 'share-code'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [authMsg, setAuthMsg] = useState(null)
   const [authLoading, setAuthLoading] = useState(false)
+  const [shareCode, setShareCode] = useState('')
+
+  const handlePasswordReset = async () => {
+    if (!auth?.configured || !email.trim()) {
+      setAuthMsg('Escreva o email primeiro.')
+      return
+    }
+    setAuthLoading(true)
+    setAuthMsg(null)
+    const result = await auth.resetPassword?.(email.trim())
+    if (result?.error) {
+      setAuthMsg(result.error)
+    } else {
+      setAuthMsg('Email de recuperação enviado! Verifique a sua caixa de correio.')
+    }
+    setAuthLoading(false)
+  }
 
   const handleAuth = async () => {
     if (!auth?.configured || !email.trim()) return
@@ -91,7 +109,7 @@ export default function Landing({ onStart, auth, onLoginSync, syncStatus }) {
     setAuthMsg(null)
 
     let result
-    if (authMode === 'register') {
+    if (authMode === 'register' || authMode === 'professional') {
       result = await auth.signUp(email.trim(), password)
       if (!result.error) {
         setAuthMsg('Conta criada! Verifica o email para confirmar.')
@@ -166,47 +184,136 @@ export default function Landing({ onStart, auth, onLoginSync, syncStatus }) {
               <p style={landingAuthStyles.familyHint}>
                 Uma conta, toda a família. Mãe, pai, terapeuta — todos acedem ao mesmo perfil, de qualquer dispositivo.
               </p>
+              <div style={landingAuthStyles.proRow}>
+                <button style={landingAuthStyles.proBtn} onClick={() => setAuthMode('professional')}>
+                  Sou Profissional
+                </button>
+                <button style={landingAuthStyles.proBtn} onClick={() => setAuthMode('share-code')}>
+                  Tenho um Código
+                </button>
+              </div>
             </div>
           )}
 
           {/* Auth form */}
-          {auth?.configured && !auth?.user && authMode && (
+          {auth?.configured && !auth?.user && authMode && authMode !== 'share-code' && (
             <div style={landingAuthStyles.form}>
               <p style={landingAuthStyles.formTitle}>
-                {authMode === 'register' ? 'Criar conta da família' : 'Entrar na minha conta'}
+                {authMode === 'register' ? 'Criar conta da família' :
+                 authMode === 'professional' ? 'Conta profissional' :
+                 'Entrar na minha conta'}
               </p>
               <p style={landingAuthStyles.formHint}>
                 {authMode === 'register'
                   ? 'Depois de criar conta, vai configurar o perfil da criança.'
+                  : authMode === 'professional'
+                  ? 'Terapeuta, educador ou psicólogo? Crie conta para gerir programas de terapia e acompanhar crianças.'
                   : 'Entra para aceder aos perfis da tua família.'}
               </p>
+              {authMode === 'professional' && (
+                <div style={landingAuthStyles.proInfo}>
+                  <span style={landingAuthStyles.proInfoIcon}>🩺</span>
+                  <div>
+                    <p style={landingAuthStyles.proInfoText}>
+                      Com a conta profissional (plano Floresta) pode:
+                    </p>
+                    <ul style={landingAuthStyles.proInfoList}>
+                      <li>Criar programas de terapia personalizados</li>
+                      <li>Prescrever actividades a cada criança</li>
+                      <li>Acompanhar progresso de até 20 perfis</li>
+                      <li>Aceitar códigos de partilha das famílias</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
               <input
                 style={landingAuthStyles.input}
                 type="email"
-                placeholder="Email"
+                placeholder={authMode === 'professional' ? 'Email profissional' : 'Email'}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
               />
-              <input
-                style={landingAuthStyles.input}
-                type="password"
-                placeholder={authMode === 'login' ? 'Password (ou vazio para magic link)' : 'Password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete={authMode === 'register' ? 'new-password' : 'current-password'}
-              />
+              <div style={landingAuthStyles.passwordWrap}>
+                <input
+                  style={landingAuthStyles.passwordInput}
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder={authMode === 'login' ? 'Password (ou vazio para magic link)' : 'Escolha uma password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete={authMode === 'register' || authMode === 'professional' ? 'new-password' : 'current-password'}
+                />
+                <button
+                  type="button"
+                  style={landingAuthStyles.eyeBtn}
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Esconder password' : 'Mostrar password'}
+                  tabIndex={-1}
+                >
+                  {showPassword ? '🙈' : '👁️'}
+                </button>
+              </div>
+              {authMode === 'login' && (
+                <button
+                  type="button"
+                  style={landingAuthStyles.forgotBtn}
+                  onClick={handlePasswordReset}
+                >
+                  Esqueceu a password?
+                </button>
+              )}
               {authMsg && <p style={landingAuthStyles.msg}>{authMsg}</p>}
               <button
                 style={landingAuthStyles.submitBtn}
                 onClick={handleAuth}
                 disabled={authLoading || !email.trim()}
               >
-                {authLoading ? 'A processar...' : authMode === 'register' ? 'Criar Conta' : 'Entrar'}
+                {authLoading ? 'A processar...' :
+                 authMode === 'register' ? 'Criar Conta' :
+                 authMode === 'professional' ? 'Criar Conta Profissional' :
+                 'Entrar'}
               </button>
               <button
                 style={landingAuthStyles.backBtn}
                 onClick={() => { setAuthMode(null); setAuthMsg(null) }}
+              >
+                Cancelar
+              </button>
+            </div>
+          )}
+
+          {/* Share code form — therapist accepts a family's share code */}
+          {auth?.configured && !auth?.user && authMode === 'share-code' && (
+            <div style={landingAuthStyles.form}>
+              <p style={landingAuthStyles.formTitle}>Inserir Código de Partilha</p>
+              <p style={landingAuthStyles.formHint}>
+                Recebeu um código de uma família? Insira-o aqui para aceder ao perfil da criança.
+                Precisa de conta para continuar.
+              </p>
+              <input
+                style={{...landingAuthStyles.input, textAlign: 'center', fontSize: '1.5rem', letterSpacing: '4px', fontFamily: 'monospace'}}
+                type="text"
+                placeholder="CÓDIGO"
+                value={shareCode}
+                onChange={(e) => setShareCode(e.target.value.toUpperCase())}
+                maxLength={8}
+              />
+              {authMsg && <p style={landingAuthStyles.msg}>{authMsg}</p>}
+              <p style={landingAuthStyles.formHint}>
+                Primeiro faça login, depois insira o código nas Definições da app.
+              </p>
+              <button
+                style={landingAuthStyles.submitBtn}
+                onClick={() => {
+                  setAuthMode('login')
+                  setAuthMsg('Faça login primeiro. Depois vá a Definições para inserir o código.')
+                }}
+              >
+                Fazer Login
+              </button>
+              <button
+                style={landingAuthStyles.backBtn}
+                onClick={() => { setAuthMode(null); setAuthMsg(null); setShareCode('') }}
               >
                 Cancelar
               </button>
@@ -1240,6 +1347,49 @@ const landingAuthStyles = {
     outline: 'none',
     minHeight: '44px',
   },
+  passwordWrap: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  passwordInput: {
+    padding: '12px 48px 12px 14px',
+    border: '2px solid #C8E6C9',
+    borderRadius: '10px',
+    fontFamily: 'inherit',
+    fontSize: '1rem',
+    outline: 'none',
+    minHeight: '44px',
+    width: '100%',
+    boxSizing: 'border-box',
+  },
+  eyeBtn: {
+    position: 'absolute',
+    right: '4px',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '1.2rem',
+    padding: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: '44px',
+    minHeight: '44px',
+  },
+  forgotBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#1565C0',
+    fontFamily: 'inherit',
+    fontSize: '0.85rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    padding: '4px',
+    textDecoration: 'underline',
+    alignSelf: 'flex-end',
+    marginTop: '-4px',
+  },
   msg: {
     fontSize: '0.85rem',
     color: '#E65100',
@@ -1286,6 +1436,53 @@ const landingAuthStyles = {
     fontWeight: 600,
     color: '#1B5E20',
     textAlign: 'center',
+  },
+  // Professional entry
+  proRow: {
+    display: 'flex',
+    gap: '12px',
+    marginTop: '4px',
+  },
+  proBtn: {
+    fontFamily: 'inherit',
+    fontSize: '0.85rem',
+    fontWeight: 600,
+    color: '#6A1B9A',
+    backgroundColor: 'rgba(243, 229, 245, 0.8)',
+    padding: '10px 16px',
+    borderRadius: '20px',
+    cursor: 'pointer',
+    border: '1px solid #CE93D8',
+    minHeight: '44px',
+    display: 'flex',
+    alignItems: 'center',
+    transition: 'all 0.2s',
+  },
+  proInfo: {
+    display: 'flex',
+    gap: '10px',
+    padding: '12px',
+    backgroundColor: '#F3E5F5',
+    borderRadius: '12px',
+    border: '1px solid #CE93D8',
+    textAlign: 'left',
+  },
+  proInfoIcon: {
+    fontSize: '1.5rem',
+    flexShrink: 0,
+  },
+  proInfoText: {
+    fontSize: '0.85rem',
+    fontWeight: 600,
+    color: '#4A148C',
+    marginBottom: '4px',
+  },
+  proInfoList: {
+    fontSize: '0.8rem',
+    color: '#6A1B9A',
+    lineHeight: 1.6,
+    paddingLeft: '16px',
+    margin: 0,
   },
   signOutBtn: {
     padding: '4px 10px',
