@@ -74,6 +74,19 @@ export function useAuth() {
     return { data }
   }, [configured])
 
+  const resetPassword = useCallback(async (email) => {
+    if (!configured) return { error: 'Supabase não configurado' }
+    setError(null)
+    const { data, error: err } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin,
+    })
+    if (err) {
+      setError(err.message)
+      return { error: err.message }
+    }
+    return { data }
+  }, [configured])
+
   const signOut = useCallback(async () => {
     if (!configured) return
     setError(null)
@@ -89,6 +102,7 @@ export function useAuth() {
     signUp,
     signIn,
     signInWithMagicLink,
+    resetPassword,
     signOut,
   }
 }

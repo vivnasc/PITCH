@@ -82,9 +82,26 @@ export default function Landing({ onStart, auth, onLoginSync, syncStatus }) {
   const [authMode, setAuthMode] = useState(null) // null | 'login' | 'register' | 'professional' | 'share-code'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [authMsg, setAuthMsg] = useState(null)
   const [authLoading, setAuthLoading] = useState(false)
   const [shareCode, setShareCode] = useState('')
+
+  const handlePasswordReset = async () => {
+    if (!auth?.configured || !email.trim()) {
+      setAuthMsg('Escreva o email primeiro.')
+      return
+    }
+    setAuthLoading(true)
+    setAuthMsg(null)
+    const result = await auth.resetPassword?.(email.trim())
+    if (result?.error) {
+      setAuthMsg(result.error)
+    } else {
+      setAuthMsg('Email de recuperação enviado! Verifique a sua caixa de correio.')
+    }
+    setAuthLoading(false)
+  }
 
   const handleAuth = async () => {
     if (!auth?.configured || !email.trim()) return
@@ -212,19 +229,39 @@ export default function Landing({ onStart, auth, onLoginSync, syncStatus }) {
               <input
                 style={landingAuthStyles.input}
                 type="email"
-                placeholder="Email profissional"
+                placeholder={authMode === 'professional' ? 'Email profissional' : 'Email'}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
               />
-              <input
-                style={landingAuthStyles.input}
-                type="password"
-                placeholder={authMode === 'login' ? 'Password (ou vazio para magic link)' : 'Password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete={authMode === 'register' || authMode === 'professional' ? 'new-password' : 'current-password'}
-              />
+              <div style={landingAuthStyles.passwordWrap}>
+                <input
+                  style={landingAuthStyles.passwordInput}
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder={authMode === 'login' ? 'Password (ou vazio para magic link)' : 'Escolha uma password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete={authMode === 'register' || authMode === 'professional' ? 'new-password' : 'current-password'}
+                />
+                <button
+                  type="button"
+                  style={landingAuthStyles.eyeBtn}
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Esconder password' : 'Mostrar password'}
+                  tabIndex={-1}
+                >
+                  {showPassword ? '🙈' : '👁️'}
+                </button>
+              </div>
+              {authMode === 'login' && (
+                <button
+                  type="button"
+                  style={landingAuthStyles.forgotBtn}
+                  onClick={handlePasswordReset}
+                >
+                  Esqueceu a password?
+                </button>
+              )}
               {authMsg && <p style={landingAuthStyles.msg}>{authMsg}</p>}
               <button
                 style={landingAuthStyles.submitBtn}
@@ -1309,6 +1346,49 @@ const landingAuthStyles = {
     fontSize: '1rem',
     outline: 'none',
     minHeight: '44px',
+  },
+  passwordWrap: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  passwordInput: {
+    padding: '12px 48px 12px 14px',
+    border: '2px solid #C8E6C9',
+    borderRadius: '10px',
+    fontFamily: 'inherit',
+    fontSize: '1rem',
+    outline: 'none',
+    minHeight: '44px',
+    width: '100%',
+    boxSizing: 'border-box',
+  },
+  eyeBtn: {
+    position: 'absolute',
+    right: '4px',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '1.2rem',
+    padding: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: '44px',
+    minHeight: '44px',
+  },
+  forgotBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#1565C0',
+    fontFamily: 'inherit',
+    fontSize: '0.85rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    padding: '4px',
+    textDecoration: 'underline',
+    alignSelf: 'flex-end',
+    marginTop: '-4px',
   },
   msg: {
     fontSize: '0.85rem',

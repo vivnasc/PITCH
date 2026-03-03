@@ -149,13 +149,19 @@ export default function Intake({ onComplete, onCancel }) {
     return true
   }
 
+  const stepLabels = [
+    'Início', 'Nome', 'Universo', 'Apoio', 'Leitura',
+    'Sensorial', 'Sessões', 'Objectivos', 'Avaliação', 'Avatar',
+  ]
+
   return (
     <div style={styles.container}>
       <div style={styles.progressBar}>
         <div style={{ ...styles.progressFill, width: `${((step + 1) / totalSteps) * 100}%` }} />
       </div>
       <div style={styles.stepIndicator}>
-        {step + 1} / {totalSteps}
+        <span style={styles.stepLabel}>{stepLabels[step]}</span>
+        <span style={styles.stepCount}>{step + 1} / {totalSteps}</span>
       </div>
 
       <div style={styles.content} className="animate-fade-in" key={step}>
@@ -163,11 +169,29 @@ export default function Intake({ onComplete, onCancel }) {
         {/* STEP 0: Who is filling this in? */}
         {step === 0 && (
           <div style={styles.stepContent}>
-            <span style={styles.bigEmoji}>👋</span>
-            <h1 style={styles.title}>Bem-vindo ao PITCH!</h1>
-            <p style={styles.desc}>
-              Antes de começar, queremos conhecer melhor a criança para adaptar a experiência.
+            <img
+              src="/logos/pitch-robo.png"
+              alt="PITCH"
+              style={styles.welcomeLogo}
+            />
+            <h1 style={styles.welcomeTitle}>Vamos criar a escola perfeita</h1>
+            <p style={styles.welcomeDesc}>
+              Em poucos passos vamos conhecer a criança e adaptar tudo automaticamente: nível de dificuldade, velocidade, suportes visuais e muito mais.
             </p>
+            <div style={styles.welcomeFeatures}>
+              <div style={styles.welcomeFeature}>
+                <span style={styles.welcomeFeatureIcon}>🎯</span>
+                <span style={styles.welcomeFeatureText}>Nível detectado por avaliação</span>
+              </div>
+              <div style={styles.welcomeFeature}>
+                <span style={styles.welcomeFeatureIcon}>🧩</span>
+                <span style={styles.welcomeFeatureText}>Perfil sensorial personalizado</span>
+              </div>
+              <div style={styles.welcomeFeature}>
+                <span style={styles.welcomeFeatureIcon}>💚</span>
+                <span style={styles.welcomeFeatureText}>Detecção de frustração incluída</span>
+              </div>
+            </div>
             <p style={styles.label}>Quem está a preencher?</p>
             <div style={styles.grid2}>
               {[
@@ -938,19 +962,34 @@ const styles = {
     backgroundColor: 'var(--color-surface)',
   },
   progressBar: {
-    height: '4px',
-    backgroundColor: 'var(--color-border)',
+    height: '6px',
+    backgroundColor: '#E8F5E9',
+    borderRadius: '3px',
+    margin: 'var(--space-xs) var(--space-lg) 0',
+    overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
     backgroundColor: 'var(--color-primary)',
+    borderRadius: '3px',
     transition: 'width 0.4s ease',
   },
   stepIndicator: {
-    textAlign: 'center',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     fontSize: 'var(--font-size-sm)',
     color: 'var(--color-text-secondary)',
-    padding: 'var(--space-xs)',
+    padding: 'var(--space-xs) var(--space-lg)',
+  },
+  stepLabel: {
+    fontWeight: 700,
+    color: 'var(--color-primary)',
+    fontSize: 'var(--font-size-sm)',
+  },
+  stepCount: {
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text-secondary)',
   },
   content: {
     flex: 1,
@@ -964,6 +1003,48 @@ const styles = {
     gap: 'var(--space-md)',
   },
   bigEmoji: { fontSize: '3rem', lineHeight: 1, textAlign: 'center' },
+  welcomeLogo: {
+    width: '100px',
+    height: '100px',
+    objectFit: 'contain',
+    alignSelf: 'center',
+  },
+  welcomeTitle: {
+    fontSize: 'var(--font-size-xl)',
+    fontWeight: 700,
+    color: 'var(--color-primary-dark)',
+    textAlign: 'center',
+    lineHeight: 1.2,
+  },
+  welcomeDesc: {
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text-secondary)',
+    textAlign: 'center',
+    lineHeight: 1.6,
+  },
+  welcomeFeatures: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    padding: 'var(--space-md)',
+    backgroundColor: '#E8F5E9',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid #A5D6A7',
+  },
+  welcomeFeature: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-sm)',
+  },
+  welcomeFeatureIcon: {
+    fontSize: '1.2rem',
+    flexShrink: 0,
+  },
+  welcomeFeatureText: {
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 600,
+    color: '#1B5E20',
+  },
   title: {
     fontSize: 'var(--font-size-xl)',
     fontWeight: 700,

@@ -14,12 +14,29 @@ export default function Welcome({ onNewProfile, profiles, onSwitchProfile, auth,
   const [authMode, setAuthMode] = useState(null) // null | 'login' | 'register'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [authMsg, setAuthMsg] = useState(null)
   const [authLoading, setAuthLoading] = useState(false)
   const [showShareCode, setShowShareCode] = useState(false)
   const [shareCodeInput, setShareCodeInput] = useState('')
   const [shareMsg, setShareMsg] = useState(null)
   const [shareLoading, setShareLoading] = useState(false)
+
+  const handlePasswordReset = async () => {
+    if (!email.trim()) {
+      setAuthMsg('Escreva o email primeiro.')
+      return
+    }
+    setAuthLoading(true)
+    setAuthMsg(null)
+    const result = await auth?.resetPassword?.(email.trim())
+    if (result?.error) {
+      setAuthMsg(result.error)
+    } else {
+      setAuthMsg('Email de recuperação enviado! Verifique a sua caixa de correio.')
+    }
+    setAuthLoading(false)
+  }
 
   const handleAuth = async () => {
     if (!email.trim()) return
@@ -247,14 +264,34 @@ export default function Welcome({ onNewProfile, profiles, onSwitchProfile, auth,
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="email"
                 />
-                <input
-                  style={styles.authInput}
-                  type="password"
-                  placeholder={authMode === 'login' ? 'Password (ou vazio para magic link)' : 'Password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete={authMode === 'register' ? 'new-password' : 'current-password'}
-                />
+                <div style={styles.passwordWrap}>
+                  <input
+                    style={styles.passwordInput}
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder={authMode === 'login' ? 'Password (ou vazio para magic link)' : 'Escolha uma password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete={authMode === 'register' ? 'new-password' : 'current-password'}
+                  />
+                  <button
+                    type="button"
+                    style={styles.eyeBtn}
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Esconder password' : 'Mostrar password'}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? '🙈' : '👁️'}
+                  </button>
+                </div>
+                {authMode === 'login' && (
+                  <button
+                    type="button"
+                    style={styles.forgotBtn}
+                    onClick={handlePasswordReset}
+                  >
+                    Esqueceu a password?
+                  </button>
+                )}
                 {authMsg && <p style={styles.authMsg}>{authMsg}</p>}
                 <button
                   style={styles.authSubmitBtn}
@@ -619,6 +656,48 @@ const styles = {
     fontFamily: 'inherit',
     fontSize: 'var(--font-size-sm)',
     outline: 'none',
+  },
+  passwordWrap: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  passwordInput: {
+    padding: 'var(--space-sm) 44px var(--space-sm) var(--space-md)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-md)',
+    fontFamily: 'inherit',
+    fontSize: 'var(--font-size-sm)',
+    outline: 'none',
+    width: '100%',
+    boxSizing: 'border-box',
+  },
+  eyeBtn: {
+    position: 'absolute',
+    right: '4px',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '1.1rem',
+    padding: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: '44px',
+    minHeight: '44px',
+  },
+  forgotBtn: {
+    background: 'none',
+    border: 'none',
+    color: 'var(--color-primary)',
+    fontFamily: 'inherit',
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 600,
+    cursor: 'pointer',
+    padding: '4px',
+    textDecoration: 'underline',
+    alignSelf: 'flex-end',
+    marginTop: '-4px',
   },
   authMsg: {
     fontSize: 'var(--font-size-sm)',
