@@ -3,17 +3,30 @@ import { useNavigate } from 'react-router-dom'
 import { VOCABULARY_WORDS, VOCABULARY_CATEGORIES } from '../data/vocabulary'
 import { WORKSHEETS } from '../data/worksheets'
 import { COMPETENCY_AREAS, MASTERY_LEVELS, PHASES, getCompetencySummary, getCampoPhases, idToLevel, getPhase } from '../data/competencies'
+import { PROFESSIONAL_TYPES, PROGRAM_TEMPLATES, getProfessionalType, getTemplatesForProfessional } from '../data/therapyTypes'
 
 /**
- * Parent/Therapist Dashboard — real progress monitoring and worksheet review.
+ * Parent/Therapist Dashboard — real progress monitoring, worksheet review,
+ * and therapy program management for professionals.
  * Accessible from settings page. Shows data, not simulations.
  */
-export default function Dashboard({ profile, progress, reviewWorksheet, addEncouragement }) {
+export default function Dashboard({ profile, progress, reviewWorksheet, addEncouragement, prescriptions, subscription }) {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('resumo')
   const [reviewingSubmission, setReviewingSubmission] = useState(null)
   const [reviewStars, setReviewStars] = useState(2)
   const [reviewFeedback, setReviewFeedback] = useState('')
+  const [creatingProgram, setCreatingProgram] = useState(false)
+  const [programName, setProgramName] = useState('')
+  const [programActivities, setProgramActivities] = useState([])
+  const [programGoals, setProgramGoals] = useState('')
+
+  const isTherapist = subscription?.tierId === 'therapist'
+  const isParentView = subscription?.isParentView
+  const canManagePrograms = subscription?.canCreatePrograms
+  const professionalType = profile?.professionalType || 'generic'
+  const profInfo = getProfessionalType(professionalType)
+  const templates = getTemplatesForProfessional(professionalType)
 
   const submissions = profile?.worksheetSubmissions || []
   const pendingSubmissions = submissions.filter((s) => s.status === 'pending')
@@ -217,7 +230,7 @@ Gerado automaticamente por PITCH
         </button>
         <div style={styles.headerRow}>
           <div>
-            <h1 style={styles.pageTitle}>Painel do Educador</h1>
+            <h1 style={styles.pageTitle}>{isTherapist ? 'Painel do Terapeuta' : 'Painel Familiar'}</h1>
             <p style={styles.pageDesc}>Progresso do {profile?.name || 'aluno'}</p>
           </div>
           <button
@@ -234,6 +247,7 @@ Gerado automaticamente por PITCH
         {[
           { id: 'resumo', label: 'Resumo', icon: '📊' },
           { id: 'fichas', label: `Fichas (${pendingSubmissions.length})`, icon: '📬' },
+          ...(canManagePrograms ? [{ id: 'programas', label: isTherapist ? 'Programas' : 'Planos', icon: isTherapist ? '🩺' : '📋' }] : []),
           { id: 'palavras', label: 'Vocabulário', icon: '🗣️' },
           { id: 'competencias', label: 'Competências', icon: '🌱' },
         ].map((tab) => (
@@ -397,6 +411,233 @@ Gerado automaticamente por PITCH
                   })}
               </div>
             </>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'programas' && canManagePrograms && (
+        <div style={styles.section} className="animate-fade-in">
+          {isTherapist ? (
+            <div style={styles.profHeader}>
+              <span style={styles.profIcon}>{profInfo?.icon || '👤'}</span>
+              <div>
+                <h3 style={styles.subTitle}>{profInfo?.name || 'Profissional'}</h3>
+                <p style={styles.profDesc}>{profInfo?.description || ''}</p>
+              </div>
+            </div>
+          ) : (
+            <div style={styles.profHeader}>
+              <span style={styles.profIcon}>👩‍👧</span>
+              <div>
+                <h3 style={styles.subTitle}>Planos Caseiros</h3>
+                <p style={styles.profDesc}>Crie planos de actividades para praticar em casa.</p>
+              </div>
+            </div>
+          )}
+
+          {/* Existing programs */}
+          <h4 style={styles.programsSubtitle}>{isTherapist ? 'Programas Activos' : 'Planos Activos'}</h4>
+          {(prescriptions?.programs || []).length === 0 ? (
+            <div style={styles.emptyState}>
+              <span style={styles.emptyEmoji}>📋</span>
+              <p style={styles.emptyText}>Ainda não criou programas de terapia.</p>
+            </div>
+          ) : (
+            <div style={styles.programList}>
+              {(prescriptions?.programs || []).map((prog) => (
+                <div key={prog.id} style={styles.programCard}>
+                  <div style={styles.programHeader}>
+                    <span style={styles.programName}>{prog.name}</span>
+                    <span style={{
+                      ...styles.programStatus,
+                      color: prog.status === 'active' ? '#2E7D32' : '#757575',
+                    }}>
+                      {prog.status === 'active' ? 'Activo' : 'Pausado'}
+                    </span>
+                  </div>
+                  <div style={styles.programActivities}>
+                    {(prog.activities || []).map((act, i) => (
+                      <span key={i} style={styles.programActivity}>
+                        {act.activityId} · {act.frequency}
+                        {act.notes && ` · ${act.notes}`}
+                      </span>
+                    ))}
+                  </div>
+                  <div style={styles.programActions}>
+                    <button
+                      style={styles.programActionBtn}
+                      onClick={() => {
+                        prescriptions.prescribe(prog.id, profile?.id)
+                      }}
+                    >
+                      Prescrever a {profile?.name || 'criança'}
+                    </button>
+                    <button
+                      style={{ ...styles.programActionBtn, color: '#D32F2F', borderColor: '#FFCDD2' }}
+                      onClick={() => prescriptions.deleteProgram(prog.id)}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Create from template */}
+          {!creatingProgram && (
+            <>
+              <h4 style={styles.programsSubtitle}>Criar Programa</h4>
+              {templates.length > 0 && (
+                <>
+                  <p style={styles.templateHint}>Modelos sugeridos para {profInfo?.name}:</p>
+                  <div style={styles.templateList}>
+                    {templates.map((tmpl) => (
+                      <button
+                        key={tmpl.id}
+                        style={styles.templateCard}
+                        onClick={() => {
+                          const created = prescriptions.createProgram({
+                            name: tmpl.name,
+                            professionalType,
+                            professionalName: profile?.name || 'Profissional',
+                            activities: tmpl.activities,
+                            goals: tmpl.goals,
+                          })
+                          if (created && profile?.id) {
+                            prescriptions.prescribe(created.id, profile.id)
+                          }
+                        }}
+                      >
+                        <span style={styles.templateName}>{tmpl.name}</span>
+                        <span style={styles.templateDetail}>
+                          {tmpl.activities.length} actividades · {tmpl.goals.length} objectivos
+                        </span>
+                        <span style={styles.templateGoals}>
+                          {tmpl.goals.slice(0, 2).join(', ')}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+              <button
+                style={styles.createProgramBtn}
+                onClick={() => setCreatingProgram(true)}
+              >
+                + Criar Programa Personalizado
+              </button>
+            </>
+          )}
+
+          {/* Custom program creation form */}
+          {creatingProgram && (
+            <div style={styles.createForm}>
+              <h4 style={styles.programsSubtitle}>Novo Programa</h4>
+              <input
+                style={styles.formInput}
+                type="text"
+                placeholder="Nome do programa (ex: Articulação — Semana 1)"
+                value={programName}
+                onChange={(e) => setProgramName(e.target.value)}
+              />
+
+              <p style={styles.formLabel}>Actividades recomendadas:</p>
+              <div style={styles.activityPicker}>
+                {(profInfo?.recommendedActivities || []).map((actId) => {
+                  const isSelected = programActivities.some((a) => a.activityId === actId)
+                  return (
+                    <button
+                      key={actId}
+                      style={{
+                        ...styles.activityPickerItem,
+                        ...(isSelected ? styles.activityPickerSelected : {}),
+                      }}
+                      onClick={() => {
+                        if (isSelected) {
+                          setProgramActivities((prev) => prev.filter((a) => a.activityId !== actId))
+                        } else {
+                          setProgramActivities((prev) => [
+                            ...prev,
+                            { activityId: actId, frequency: 'daily', notes: '', targetLevel: 2 },
+                          ])
+                        }
+                      }}
+                    >
+                      {isSelected ? '✓ ' : ''}{actId.replace(/-/g, ' ')}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Frequency per selected activity */}
+              {programActivities.length > 0 && (
+                <div style={styles.freqList}>
+                  {programActivities.map((act, idx) => (
+                    <div key={act.activityId} style={styles.freqRow}>
+                      <span style={styles.freqName}>{act.activityId.replace(/-/g, ' ')}</span>
+                      <select
+                        style={styles.freqSelect}
+                        value={act.frequency}
+                        onChange={(e) => {
+                          const updated = [...programActivities]
+                          updated[idx] = { ...updated[idx], frequency: e.target.value }
+                          setProgramActivities(updated)
+                        }}
+                      >
+                        <option value="daily">Diário</option>
+                        <option value="3x-week">3x/semana</option>
+                        <option value="weekly">Semanal</option>
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <textarea
+                style={styles.formTextarea}
+                placeholder="Objectivos (um por linha)"
+                value={programGoals}
+                onChange={(e) => setProgramGoals(e.target.value)}
+                rows={3}
+              />
+
+              <div style={styles.formBtns}>
+                <button
+                  style={styles.createProgramBtn}
+                  disabled={!programName.trim() || programActivities.length === 0}
+                  onClick={() => {
+                    const created = prescriptions.createProgram({
+                      name: programName.trim(),
+                      professionalType,
+                      professionalName: profile?.name || 'Profissional',
+                      activities: programActivities,
+                      goals: programGoals.split('\n').filter((g) => g.trim()),
+                    })
+                    if (created && profile?.id) {
+                      prescriptions.prescribe(created.id, profile.id)
+                    }
+                    setProgramName('')
+                    setProgramActivities([])
+                    setProgramGoals('')
+                    setCreatingProgram(false)
+                  }}
+                >
+                  Criar e Prescrever
+                </button>
+                <button
+                  style={styles.cancelBtn}
+                  onClick={() => {
+                    setCreatingProgram(false)
+                    setProgramName('')
+                    setProgramActivities([])
+                    setProgramGoals('')
+                  }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -1070,5 +1311,220 @@ const styles = {
   },
   compMilestoneText: {
     lineHeight: 1.3,
+  },
+  // Programs tab
+  profHeader: {
+    display: 'flex',
+    gap: 'var(--space-md)',
+    alignItems: 'center',
+    padding: 'var(--space-md)',
+    backgroundColor: '#E3F2FD',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid #90CAF9',
+  },
+  profIcon: {
+    fontSize: '2.5rem',
+  },
+  profDesc: {
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text-secondary)',
+    marginTop: '2px',
+  },
+  programsSubtitle: {
+    fontSize: 'var(--font-size-base)',
+    fontWeight: 700,
+    marginTop: 'var(--space-sm)',
+  },
+  programList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-sm)',
+  },
+  programCard: {
+    padding: 'var(--space-md)',
+    backgroundColor: 'var(--color-bg)',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--color-border)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-sm)',
+  },
+  programHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  programName: {
+    fontWeight: 700,
+    fontSize: 'var(--font-size-base)',
+  },
+  programStatus: {
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 600,
+  },
+  programActivities: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '4px',
+  },
+  programActivity: {
+    fontSize: '0.7rem',
+    padding: '2px 8px',
+    backgroundColor: '#E8F5E9',
+    borderRadius: 'var(--radius-sm)',
+    color: 'var(--color-text)',
+  },
+  programActions: {
+    display: 'flex',
+    gap: 'var(--space-sm)',
+  },
+  programActionBtn: {
+    padding: 'var(--space-sm) var(--space-md)',
+    backgroundColor: 'transparent',
+    color: 'var(--color-primary)',
+    border: '1px solid var(--color-primary)',
+    borderRadius: 'var(--radius-sm)',
+    cursor: 'pointer',
+    fontWeight: 600,
+    fontFamily: 'inherit',
+    fontSize: 'var(--font-size-sm)',
+  },
+  templateHint: {
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text-secondary)',
+  },
+  templateList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-sm)',
+  },
+  templateCard: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+    padding: 'var(--space-md)',
+    backgroundColor: '#FFF8E1',
+    border: '2px solid #FFE082',
+    borderRadius: 'var(--radius-md)',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    textAlign: 'left',
+  },
+  templateName: {
+    fontWeight: 700,
+    fontSize: 'var(--font-size-base)',
+    color: '#E65100',
+  },
+  templateDetail: {
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text-secondary)',
+  },
+  templateGoals: {
+    fontSize: '0.7rem',
+    color: '#757575',
+    fontStyle: 'italic',
+  },
+  createProgramBtn: {
+    padding: 'var(--space-md)',
+    backgroundColor: 'var(--color-primary)',
+    color: 'white',
+    border: 'none',
+    borderRadius: 'var(--radius-md)',
+    cursor: 'pointer',
+    fontWeight: 700,
+    fontFamily: 'inherit',
+    fontSize: 'var(--font-size-base)',
+  },
+  cancelBtn: {
+    padding: 'var(--space-sm) var(--space-md)',
+    backgroundColor: 'transparent',
+    color: 'var(--color-text-secondary)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-md)',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    fontSize: 'var(--font-size-sm)',
+  },
+  createForm: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-sm)',
+    padding: 'var(--space-md)',
+    backgroundColor: 'var(--color-bg)',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--color-border)',
+  },
+  formInput: {
+    padding: 'var(--space-md)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-md)',
+    fontFamily: 'inherit',
+    fontSize: 'var(--font-size-base)',
+    outline: 'none',
+  },
+  formLabel: {
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 600,
+    marginTop: 'var(--space-xs)',
+  },
+  formTextarea: {
+    padding: 'var(--space-md)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-md)',
+    fontFamily: 'inherit',
+    fontSize: 'var(--font-size-base)',
+    outline: 'none',
+    resize: 'vertical',
+  },
+  formBtns: {
+    display: 'flex',
+    gap: 'var(--space-sm)',
+  },
+  activityPicker: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '6px',
+  },
+  activityPickerItem: {
+    padding: 'var(--space-sm) var(--space-md)',
+    backgroundColor: 'var(--color-surface)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-md)',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    fontSize: 'var(--font-size-sm)',
+    textTransform: 'capitalize',
+  },
+  activityPickerSelected: {
+    backgroundColor: '#C8E6C9',
+    borderColor: '#4CAF50',
+    color: '#1B5E20',
+    fontWeight: 700,
+  },
+  freqList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+  },
+  freqRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '4px 8px',
+    backgroundColor: 'var(--color-surface)',
+    borderRadius: 'var(--radius-sm)',
+  },
+  freqName: {
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 600,
+    textTransform: 'capitalize',
+  },
+  freqSelect: {
+    padding: '4px 8px',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-sm)',
+    fontFamily: 'inherit',
+    fontSize: 'var(--font-size-sm)',
+    outline: 'none',
   },
 }

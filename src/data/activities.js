@@ -117,6 +117,36 @@ export const CAMPO1_ACTIVITIES = [
     type: 'phonics',
     difficulty: 1,
   },
+  {
+    id: 'syllable-builder',
+    name: 'Sílabas',
+    description: 'Consciência fonológica: identifica, completa e constrói palavras com sílabas.',
+    icon: '🔤',
+    type: 'syllable-builder',
+    difficulty: 1,
+    therapy: true,
+    therapyDomain: 'articulation-phonology',
+  },
+  {
+    id: 'sentence-builder',
+    name: 'Frases',
+    description: 'Construção frásica: ordena palavras, completa e expande frases.',
+    icon: '📝',
+    type: 'sentence-builder',
+    difficulty: 1,
+    therapy: true,
+    therapyDomain: 'sentence-building',
+  },
+  {
+    id: 'listening-quest',
+    name: 'Ouve e Descobre',
+    description: 'Compreensão auditiva: segue instruções, responde a perguntas sobre o que ouviu.',
+    icon: '👂',
+    type: 'listening-quest',
+    difficulty: 1,
+    therapy: true,
+    therapyDomain: 'auditory-comprehension',
+  },
 ]
 
 export const CAMPO2_ACTIVITIES = [

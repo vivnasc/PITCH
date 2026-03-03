@@ -4,7 +4,7 @@ import { getCurrentChallenges, getDaysUntilReset } from '../data/challenges'
 import { AVATARS } from '../hooks/useProfile'
 import ProgressBar from '../components/ProgressBar'
 
-export default function Home({ progress, profile, adaptive, planner }) {
+export default function Home({ progress, profile, adaptive, planner, subscription, prescriptions }) {
   const navigate = useNavigate()
   const totalWords = progress.wordsLearned.length
   const totalStars = progress.totalStars
@@ -37,6 +37,11 @@ export default function Home({ progress, profile, adaptive, planner }) {
   const hasGoals = (profile?.goals || []).length > 0
   const needsAreas = profile?.learningNeeds?.areas || []
 
+  const isParentOrTherapist = subscription?.isParentView || subscription?.isTherapistView
+  const viewLabel = subscription?.isTherapistView ? 'Terapeuta' : subscription?.isParentView ? 'Pai/Mãe' : null
+  const todayTasks = prescriptions?.todayTasks || []
+  const pendingTherapy = todayTasks.filter((t) => !t.done)
+
   return (
     <div style={styles.container} className="animate-fade-in">
       {/* The school belongs to the child */}
@@ -57,7 +62,12 @@ export default function Home({ progress, profile, adaptive, planner }) {
             {avatarEmoji}
           </div>
           <div>
-            <p style={styles.greeting}>Olá, {playerName}!</p>
+            <p style={styles.greeting}>
+              {isParentOrTherapist ? `Bem-vindo(a)` : `Olá, ${playerName}!`}
+            </p>
+            {viewLabel && (
+              <p style={styles.viewBadge}>{viewLabel}</p>
+            )}
           </div>
         </div>
         <button
@@ -69,6 +79,56 @@ export default function Home({ progress, profile, adaptive, planner }) {
           <span style={styles.streakLabel}>dias</span>
         </button>
       </header>
+
+      {/* Parent/Therapist: quick dashboard access */}
+      {isParentOrTherapist && (
+        <button
+          style={styles.dashboardBanner}
+          onClick={() => navigate('/dashboard')}
+        >
+          <span style={styles.dashboardBannerIcon}>
+            {subscription?.isTherapistView ? '🩺' : '📊'}
+          </span>
+          <div style={styles.dashboardBannerText}>
+            <span style={styles.dashboardBannerTitle}>
+              {subscription?.isTherapistView ? 'Painel do Terapeuta' : 'Painel Familiar'}
+            </span>
+            <span style={styles.dashboardBannerDesc}>
+              Ver progresso, fichas e competências
+            </span>
+          </div>
+          <span style={styles.todayGo}>→</span>
+        </button>
+      )}
+
+      {/* Parent/Therapist: pending therapy tasks summary */}
+      {isParentOrTherapist && pendingTherapy.length > 0 && (
+        <section style={styles.therapyBanner}>
+          <div style={styles.therapyBannerHeader}>
+            <span style={styles.therapyBannerTitle}>
+              Terapias Hoje
+            </span>
+            <span style={styles.therapyBannerCount}>
+              {pendingTherapy.length} pendente{pendingTherapy.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          {pendingTherapy.slice(0, 3).map((task) => (
+            <div key={task.activityId} style={styles.therapyBannerItem}>
+              <span>🩺</span>
+              <span style={styles.therapyBannerName}>
+                {task.activityId.replace(/-/g, ' ')}
+              </span>
+              <span style={styles.therapyBannerFreq}>{task.frequency}</span>
+            </div>
+          ))}
+          <button
+            style={styles.therapyBannerMore}
+            onClick={() => navigate('/planner')}
+          >
+            Ver plano completo →
+          </button>
+        </section>
+      )}
 
       {/* Today's Plan — the main focus for the child */}
       {planner && (
@@ -224,6 +284,106 @@ const styles = {
     fontSize: 'var(--font-size-base)',
     fontWeight: 700,
     color: 'var(--color-primary-dark)',
+  },
+  viewBadge: {
+    fontSize: '0.6rem',
+    fontWeight: 700,
+    color: 'white',
+    backgroundColor: 'var(--color-primary)',
+    padding: '1px 8px',
+    borderRadius: 'var(--radius-sm)',
+    display: 'inline-block',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+  },
+  // Dashboard banner for parent/therapist
+  dashboardBanner: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-sm)',
+    padding: 'var(--space-md)',
+    backgroundColor: '#E3F2FD',
+    border: '2px solid #90CAF9',
+    borderRadius: 'var(--radius-md)',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    width: '100%',
+    textAlign: 'left',
+  },
+  dashboardBannerIcon: {
+    fontSize: '1.5rem',
+  },
+  dashboardBannerText: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  dashboardBannerTitle: {
+    fontWeight: 700,
+    fontSize: 'var(--font-size-sm)',
+    color: '#1565C0',
+  },
+  dashboardBannerDesc: {
+    fontSize: '0.7rem',
+    color: 'var(--color-text-secondary)',
+  },
+  // Therapy tasks banner
+  therapyBanner: {
+    padding: 'var(--space-md)',
+    backgroundColor: '#FFF3E0',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid #FFB74D',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-xs)',
+  },
+  therapyBannerHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  therapyBannerTitle: {
+    fontWeight: 700,
+    fontSize: 'var(--font-size-base)',
+    color: '#E65100',
+  },
+  therapyBannerCount: {
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 600,
+    color: '#BF360C',
+    backgroundColor: '#FFCCBC',
+    padding: '2px 8px',
+    borderRadius: 'var(--radius-sm)',
+  },
+  therapyBannerItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-sm)',
+    padding: 'var(--space-xs)',
+    backgroundColor: 'white',
+    borderRadius: 'var(--radius-sm)',
+  },
+  therapyBannerName: {
+    flex: 1,
+    fontWeight: 600,
+    fontSize: 'var(--font-size-sm)',
+    textTransform: 'capitalize',
+  },
+  therapyBannerFreq: {
+    fontSize: '0.65rem',
+    color: 'var(--color-text-secondary)',
+    fontWeight: 500,
+  },
+  therapyBannerMore: {
+    alignSelf: 'center',
+    padding: '4px var(--space-md)',
+    backgroundColor: 'transparent',
+    color: '#E65100',
+    border: 'none',
+    cursor: 'pointer',
+    fontWeight: 600,
+    fontFamily: 'inherit',
+    fontSize: 'var(--font-size-sm)',
   },
   subtitle: {
     fontSize: 'var(--font-size-sm)',

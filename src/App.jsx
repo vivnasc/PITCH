@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation, useParams, useNavigate } from 'react-router-dom'
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import Welcome from './pages/Welcome'
@@ -40,6 +40,9 @@ import WeatherMatch from './activities/campo3/WeatherMatch'
 import DailyRoutine from './activities/campo4/DailyRoutine'
 import RealWorld from './activities/campo4/RealWorld'
 import Phonics from './activities/campo1/Phonics'
+import SyllableBuilder from './activities/campo1/SyllableBuilder'
+import SentenceBuilder from './activities/campo1/SentenceBuilder'
+import ListeningQuest from './activities/campo1/ListeningQuest'
 import Patterns from './activities/campo2/Patterns'
 import NatureLab from './activities/campo3/NatureLab'
 import ProblemSolving from './activities/campo4/ProblemSolving'
@@ -70,6 +73,7 @@ import { usePlanner } from './hooks/usePlanner'
 import { useAuth } from './hooks/useAuth'
 import { useSync } from './hooks/useSync'
 import { useSubscription } from './hooks/useSubscription'
+import { usePrescriptions } from './hooks/usePrescriptions'
 import { isActivityAvailable } from './data/tiers'
 import { useProfileSharing } from './hooks/useProfileSharing'
 import { setTTSMode } from './hooks/useTTS'
@@ -347,7 +351,19 @@ function AppContent() {
     }
   }, [sync, profileData, progressData])
   const adaptive = useAdaptive(profileData.profile)
-  const subscription = useSubscription(profileData.profile)
+  const prescriptions = usePrescriptions(profileData.profile?.id)
+
+  // Collect prescribed activity IDs so they bypass tier locks
+  const prescribedActivityIds = useMemo(() => {
+    const ids = new Set()
+    ;(prescriptions?.todayTasks || []).forEach((t) => ids.add(t.activityId))
+    ;(prescriptions?.activeForChild || []).forEach(({ program }) => {
+      ;(program?.activities || []).forEach((a) => ids.add(a.activityId))
+    })
+    return ids
+  }, [prescriptions?.todayTasks, prescriptions?.activeForChild])
+
+  const subscription = useSubscription(profileData.profile, auth.user, prescribedActivityIds)
   const sharing = useProfileSharing(
     auth.user,
     profileData.profiles,
@@ -552,6 +568,8 @@ function AppContent() {
               profile={profileData.profile}
               adaptive={adaptive}
               planner={plannerData}
+              subscription={subscription}
+              prescriptions={prescriptions}
             />
           } />
           <Route path="/campo/1" element={<Campo1Bancada {...activityProps} />} />
@@ -610,6 +628,7 @@ function AppContent() {
               removeRealReward={profileData.removeRealReward}
               subscription={subscription}
               sharing={sharing}
+              auth={auth}
             />
           } />
 
@@ -623,6 +642,7 @@ function AppContent() {
               progress={progressData.progress}
               planner={plannerData}
               adaptive={adaptive}
+              prescriptions={prescriptions}
             />
           } />
 
@@ -632,6 +652,8 @@ function AppContent() {
               progress={progressData.progress}
               reviewWorksheet={profileData.reviewWorksheet}
               addEncouragement={profileData.addEncouragement}
+              prescriptions={prescriptions}
+              subscription={subscription}
             />
           } />
 
@@ -641,6 +663,9 @@ function AppContent() {
           <Route path="/campo/1/color-kit" element={<LockedRoute activityId="color-kit" campoId="campo1" subscription={subscription}><ColorKit {...activityProps} /></LockedRoute>} />
           <Route path="/campo/1/read-score" element={<LockedRoute activityId="read-score" campoId="campo1" subscription={subscription}><ReadScore {...activityProps} /></LockedRoute>} />
           <Route path="/campo/1/phonics" element={<LockedRoute activityId="phonics" campoId="campo1" subscription={subscription}><Phonics {...activityProps} /></LockedRoute>} />
+          <Route path="/campo/1/syllable-builder" element={<LockedRoute activityId="syllable-builder" campoId="campo1" subscription={subscription}><SyllableBuilder {...activityProps} /></LockedRoute>} />
+          <Route path="/campo/1/sentence-builder" element={<LockedRoute activityId="sentence-builder" campoId="campo1" subscription={subscription}><SentenceBuilder {...activityProps} /></LockedRoute>} />
+          <Route path="/campo/1/listening-quest" element={<LockedRoute activityId="listening-quest" campoId="campo1" subscription={subscription}><ListeningQuest {...activityProps} /></LockedRoute>} />
 
           {/* Campo 2 activities */}
           <Route path="/campo/2/goal-math" element={<LockedRoute activityId="goal-math" campoId="campo2" subscription={subscription}><GoalMath {...activityProps} /></LockedRoute>} />

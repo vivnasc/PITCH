@@ -68,6 +68,15 @@ const DEFAULT_PROFILE = {
   // Subscription tier: 'free', 'family', or 'therapist'
   subscriptionTier: 'free',
 
+  // Professional type (for therapist accounts): 'speech-therapist', 'occupational-therapist', etc.
+  professionalType: null,
+
+  // View mode: who is using this profile right now
+  // 'child' — child sees activities, planner, fun UI
+  // 'parent' — parent sees dashboard, progress, can manage plans
+  // 'therapist' — full professional tools, programs, prescriptions
+  viewMode: 'child',
+
   communication: {
     usesVisualSupports: false,
     prefersSimpleLanguage: false,

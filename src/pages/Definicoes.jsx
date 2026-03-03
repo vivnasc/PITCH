@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { AVATARS } from '../hooks/useProfile'
 import { UNIVERSES } from '../data/universes'
 import { TIERS } from '../data/tiers'
+import { PROFESSIONAL_TYPES } from '../data/therapyTypes'
 import { exportAllData, importData } from '../hooks/useStorage'
 
 /**
@@ -11,7 +12,7 @@ import { exportAllData, importData } from '../hooks/useStorage'
  */
 export default function Definicoes({
   profile, profiles, updateProfile, resetProfile, deleteProfile,
-  addRealReward, removeRealReward, subscription, sharing,
+  addRealReward, removeRealReward, subscription, sharing, auth,
 }) {
   const navigate = useNavigate()
   const [showReset, setShowReset] = useState(false)
@@ -97,6 +98,113 @@ export default function Definicoes({
               </p>
             )}
           </div>
+        </section>
+      )}
+
+      {/* Account / Logout */}
+      <section style={styles.section}>
+        <h2 style={styles.sectionTitle}>Conta</h2>
+        <div style={styles.accountCard}>
+          {auth?.configured && auth?.user ? (
+            <>
+              <div style={styles.accountRow}>
+                <span style={styles.accountIcon}>☁️</span>
+                <div style={styles.accountInfo}>
+                  <span style={styles.accountEmail}>{auth.user.email}</span>
+                  <span style={styles.accountHint}>
+                    Dados sincronizados na cloud
+                    {subscription?.isFounder && ' — Conta fundadora'}
+                  </span>
+                </div>
+              </div>
+              <button
+                style={styles.signOutBtn}
+                onClick={auth.signOut}
+              >
+                Sair da conta
+              </button>
+            </>
+          ) : auth?.configured ? (
+            <div style={styles.accountRow}>
+              <span style={styles.accountIcon}>🔑</span>
+              <div style={styles.accountInfo}>
+                <span style={styles.accountHint}>Sem conta — dados apenas neste dispositivo</span>
+              </div>
+              <button
+                style={styles.signInBtn}
+                onClick={() => navigate('/landing')}
+              >
+                Entrar
+              </button>
+            </div>
+          ) : (
+            <div style={styles.accountRow}>
+              <span style={styles.accountIcon}>📱</span>
+              <div style={styles.accountInfo}>
+                <span style={styles.accountHint}>Dados guardados neste dispositivo</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* View Mode — who is using the app */}
+      {subscription?.isPaid && (
+        <section style={styles.section}>
+          <h2 style={styles.sectionTitle}>Estou a usar como</h2>
+          <p style={styles.rewardHint}>
+            Muda a vista da app. Podes trocar a qualquer momento.
+          </p>
+          <div style={styles.viewModeGrid}>
+            {[
+              { id: 'child', icon: '👧', label: 'Criança', desc: 'Actividades, planner, diversão' },
+              { id: 'parent', icon: '👩‍👧', label: 'Pai / Mãe', desc: 'Progresso, dashboard, programas caseiros' },
+              ...(subscription.isTherapist ? [{ id: 'therapist', icon: '🩺', label: 'Terapeuta', desc: 'Programas profissionais, prescrições, relatórios' }] : []),
+            ].map((mode) => (
+              <button
+                key={mode.id}
+                style={{
+                  ...styles.viewModeCard,
+                  ...(profile?.viewMode === mode.id ? styles.viewModeActive : {}),
+                }}
+                onClick={() => updateProfile({ viewMode: mode.id })}
+              >
+                <span style={styles.viewModeIcon}>{mode.icon}</span>
+                <span style={styles.viewModeName}>{mode.label}</span>
+                <span style={styles.viewModeDesc}>{mode.desc}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Professional Type (therapist view) */}
+      {subscription?.isTherapist && profile?.viewMode === 'therapist' && (
+        <section style={styles.section}>
+          <h2 style={styles.sectionTitle}>Especialização Profissional</h2>
+          <p style={styles.rewardHint}>
+            Seleccione a sua área para ver templates de programas e actividades recomendadas.
+          </p>
+          <div style={styles.professionalGrid}>
+            {PROFESSIONAL_TYPES.filter((pt) => pt.id !== 'generic').map((pt) => (
+              <button
+                key={pt.id}
+                style={{
+                  ...styles.professionalCard,
+                  ...(profile?.professionalType === pt.id ? styles.professionalCardActive : {}),
+                }}
+                onClick={() => updateProfile({ professionalType: pt.id })}
+              >
+                <span style={styles.professionalIcon}>{pt.icon}</span>
+                <span style={styles.professionalName}>{pt.name}</span>
+              </button>
+            ))}
+          </div>
+          {profile?.professionalType && (
+            <p style={styles.professionalDesc}>
+              {PROFESSIONAL_TYPES.find((p) => p.id === profile.professionalType)?.description}
+            </p>
+          )}
         </section>
       )}
 
@@ -467,16 +575,20 @@ export default function Definicoes({
         </div>
       </section>
 
-      {/* Dashboard */}
-      <section style={styles.section}>
-        <h2 style={styles.sectionTitle}>Painel do Educador</h2>
-        <button
-          style={styles.dashboardBtn}
-          onClick={() => navigate('/dashboard')}
-        >
-          📊 Ver progresso detalhado
-        </button>
-      </section>
+      {/* Dashboard — visible for paid tiers */}
+      {subscription?.hasDashboard && (
+        <section style={styles.section}>
+          <h2 style={styles.sectionTitle}>
+            {subscription?.isTherapistView ? 'Painel do Terapeuta' : 'Painel Familiar'}
+          </h2>
+          <button
+            style={styles.dashboardBtn}
+            onClick={() => navigate('/dashboard')}
+          >
+            {subscription?.isTherapistView ? '🩺' : '📊'} Ver progresso detalhado
+          </button>
+        </section>
+      )}
 
       {/* Backup & Sync */}
       <section style={styles.section}>
@@ -1152,5 +1264,138 @@ const styles = {
     fontSize: 'var(--font-size-sm)',
     color: 'var(--color-text-secondary)',
     lineHeight: 1.4,
+  },
+  // Account section
+  accountCard: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-sm)',
+    padding: 'var(--space-md)',
+    backgroundColor: 'var(--color-bg)',
+    borderRadius: 'var(--radius-md)',
+  },
+  accountRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-sm)',
+  },
+  accountIcon: {
+    fontSize: '1.5rem',
+    flexShrink: 0,
+  },
+  accountInfo: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  accountEmail: {
+    fontWeight: 700,
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text)',
+  },
+  accountHint: {
+    fontSize: '0.75rem',
+    color: 'var(--color-text-secondary)',
+    lineHeight: 1.3,
+  },
+  signOutBtn: {
+    width: '100%',
+    padding: 'var(--space-sm) var(--space-md)',
+    backgroundColor: '#FFEBEE',
+    border: '1px solid #C62828',
+    borderRadius: 'var(--radius-md)',
+    cursor: 'pointer',
+    fontWeight: 700,
+    fontFamily: 'inherit',
+    fontSize: 'var(--font-size-sm)',
+    color: '#C62828',
+  },
+  signInBtn: {
+    padding: 'var(--space-xs) var(--space-md)',
+    backgroundColor: 'var(--color-primary)',
+    color: 'white',
+    border: 'none',
+    borderRadius: 'var(--radius-md)',
+    cursor: 'pointer',
+    fontWeight: 700,
+    fontFamily: 'inherit',
+    fontSize: 'var(--font-size-sm)',
+    flexShrink: 0,
+  },
+  // View mode selector
+  viewModeGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 'var(--space-sm)',
+  },
+  viewModeCard: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '4px',
+    padding: 'var(--space-md)',
+    backgroundColor: 'var(--color-bg)',
+    border: '2px solid var(--color-border)',
+    borderRadius: 'var(--radius-md)',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    transition: 'border-color 0.2s ease, background-color 0.2s ease',
+  },
+  viewModeActive: {
+    borderColor: 'var(--color-primary)',
+    backgroundColor: '#E8F5E9',
+  },
+  viewModeIcon: {
+    fontSize: '1.8rem',
+  },
+  viewModeName: {
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 700,
+    color: 'var(--color-text)',
+  },
+  viewModeDesc: {
+    fontSize: '0.65rem',
+    color: 'var(--color-text-secondary)',
+    textAlign: 'center',
+    lineHeight: 1.3,
+  },
+  // Professional type
+  professionalGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 'var(--space-sm)',
+  },
+  professionalCard: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '4px',
+    padding: 'var(--space-md)',
+    backgroundColor: 'var(--color-bg)',
+    border: '2px solid var(--color-border)',
+    borderRadius: 'var(--radius-md)',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    transition: 'border-color 0.2s ease, background-color 0.2s ease',
+  },
+  professionalCardActive: {
+    borderColor: '#6A1B9A',
+    backgroundColor: '#F3E5F5',
+  },
+  professionalIcon: {
+    fontSize: '1.8rem',
+  },
+  professionalName: {
+    fontSize: 'var(--font-size-sm)',
+    fontWeight: 700,
+    textAlign: 'center',
+    color: 'var(--color-text)',
+  },
+  professionalDesc: {
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-text-secondary)',
+    fontStyle: 'italic',
+    lineHeight: 1.4,
+    padding: 'var(--space-xs) 0',
   },
 }
