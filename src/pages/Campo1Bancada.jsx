@@ -5,10 +5,12 @@ import ActivityCard from '../components/ActivityCard'
 import ProgressBar from '../components/ProgressBar'
 import UpgradePrompt from '../components/UpgradePrompt'
 
-export default function Campo1Bancada({ progress, subscription }) {
+export default function Campo1Bancada({ progress, subscription, prescriptions }) {
   const [showUpgrade, setShowUpgrade] = useState(false)
   const learnedCount = progress.wordsLearned.length
   const totalWords = VOCABULARY_WORDS.length
+  const prescribedIds = (prescriptions?.activeForChild || [])
+    .flatMap((p) => (p.program?.activities || []).map((a) => a.activityId))
 
   return (
     <div style={styles.container} className="animate-fade-in">
@@ -45,6 +47,7 @@ export default function Campo1Bancada({ progress, subscription }) {
               completed={progress.activitiesCompleted[a.id]}
               locked={subscription?.isActivityLocked(a.id, 'campo1')}
               onLockedClick={() => setShowUpgrade(true)}
+              prescribed={prescribedIds.includes(a.id)}
             />
           ))}
         </div>

@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom'
 
-export default function ActivityCard({ activity, basePath, completed, locked, onLockedClick }) {
+export default function ActivityCard({ activity, basePath, completed, locked, onLockedClick, prescribed }) {
   const navigate = useNavigate()
   const stars = completed || 0
+  const isTherapy = activity.therapy
+  const isPrescribed = prescribed
 
   const handleClick = () => {
     if (locked) {
@@ -17,6 +19,7 @@ export default function ActivityCard({ activity, basePath, completed, locked, on
       style={{
         ...styles.card,
         ...(locked ? styles.cardLocked : {}),
+        ...(isPrescribed && !locked ? styles.cardPrescribed : {}),
       }}
       className={locked ? '' : 'interactive-card'}
       onClick={handleClick}
@@ -29,9 +32,17 @@ export default function ActivityCard({ activity, basePath, completed, locked, on
         {locked ? '🔒' : activity.icon}
       </span>
       <div style={styles.info}>
-        <span style={{ ...styles.name, ...(locked ? styles.nameLocked : {}) }}>
-          {activity.name}
-        </span>
+        <div style={styles.nameRow}>
+          <span style={{ ...styles.name, ...(locked ? styles.nameLocked : {}) }}>
+            {activity.name}
+          </span>
+          {!locked && isPrescribed && (
+            <span style={styles.prescribedBadge}>Prescrita</span>
+          )}
+          {!locked && isTherapy && !isPrescribed && (
+            <span style={styles.therapyBadge}>Terapia</span>
+          )}
+        </div>
         <span style={styles.desc}>
           {locked ? 'Disponível no plano Flor' : activity.description}
         </span>
@@ -83,16 +94,47 @@ const styles = {
   iconLocked: {
     fontSize: '1.5rem',
   },
+  cardPrescribed: {
+    borderLeft: '3px solid #2E7D32',
+  },
   info: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
     gap: '2px',
   },
+  nameRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    flexWrap: 'wrap',
+  },
   name: {
     fontWeight: 700,
     fontSize: 'var(--font-size-base)',
     color: 'var(--color-text)',
+  },
+  therapyBadge: {
+    padding: '1px 6px',
+    backgroundColor: '#E8F5E9',
+    color: '#2E7D32',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: '0.6rem',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    flexShrink: 0,
+  },
+  prescribedBadge: {
+    padding: '1px 6px',
+    backgroundColor: '#E3F2FD',
+    color: '#1565C0',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: '0.6rem',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    flexShrink: 0,
   },
   nameLocked: {
     color: 'var(--color-text-secondary)',
