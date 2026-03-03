@@ -174,22 +174,26 @@ export default function Intake({ onComplete, onCancel }) {
               alt="PITCH"
               style={styles.welcomeLogo}
             />
-            <h1 style={styles.welcomeTitle}>Vamos criar a escola perfeita</h1>
+            <h1 style={styles.welcomeTitle}>Configurar o perfil adaptativo</h1>
             <p style={styles.welcomeDesc}>
-              Em poucos passos vamos conhecer a criança e adaptar tudo automaticamente: nível de dificuldade, velocidade, suportes visuais e muito mais.
+              O PITCH adapta-se a cada criança. Em 10 passos vamos construir o perfil: avaliação diagnóstica por campo, perfil sensorial, detecção de frustração e motor adaptativo em tempo real.
             </p>
             <div style={styles.welcomeFeatures}>
               <div style={styles.welcomeFeature}>
+                <span style={styles.welcomeFeatureIcon}>🧠</span>
+                <span style={styles.welcomeFeatureText}>Motor adaptativo — dificuldade ajusta-se em tempo real</span>
+              </div>
+              <div style={styles.welcomeFeature}>
                 <span style={styles.welcomeFeatureIcon}>🎯</span>
-                <span style={styles.welcomeFeatureText}>Nível detectado por avaliação</span>
+                <span style={styles.welcomeFeatureText}>Avaliação diagnóstica — nível independente por campo</span>
               </div>
               <div style={styles.welcomeFeature}>
                 <span style={styles.welcomeFeatureIcon}>🧩</span>
-                <span style={styles.welcomeFeatureText}>Perfil sensorial personalizado</span>
+                <span style={styles.welcomeFeatureText}>Perfil sensorial — som, contraste, animações, tamanho</span>
               </div>
               <div style={styles.welcomeFeature}>
                 <span style={styles.welcomeFeatureIcon}>💚</span>
-                <span style={styles.welcomeFeatureText}>Detecção de frustração incluída</span>
+                <span style={styles.welcomeFeatureText}>Detecção de frustração — pausa guiada automática</span>
               </div>
             </div>
             <p style={styles.label}>Quem está a preencher?</p>
