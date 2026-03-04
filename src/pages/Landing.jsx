@@ -77,7 +77,7 @@ const TESTIMONIALS = [
   },
 ]
 
-export default function Landing({ onStart, auth, onLoginSync, syncStatus }) {
+export default function Landing({ onStart, onStartProfessional, auth, onLoginSync, syncStatus }) {
   const navigate = useNavigate()
   const [authMode, setAuthMode] = useState(null) // null | 'login' | 'register' | 'professional' | 'share-code'
   const [email, setEmail] = useState('')
@@ -348,6 +348,9 @@ export default function Landing({ onStart, auth, onLoginSync, syncStatus }) {
                 document.getElementById('nossa-historia')?.scrollIntoView({ behavior: 'smooth' })
               }}>
                 A Nossa História
+              </button>
+              <button style={landingAuthStyles.proBtn} onClick={onStartProfessional}>
+                Sou Profissional
               </button>
             </div>
           )}

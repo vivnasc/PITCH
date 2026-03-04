@@ -404,7 +404,13 @@ function AppContent() {
   }, [calmDown])
 
   // New profile: show intake wizard (or skip for founder)
+  const [pendingProfessional, setPendingProfessional] = useState(false)
   const handleNewProfile = useCallback(() => {
+    setPendingProfessional(false)
+    setShowIntake(true)
+  }, [])
+  const handleNewProfessional = useCallback(() => {
+    setPendingProfessional(true)
     setShowIntake(true)
   }, [])
 
@@ -420,6 +426,12 @@ function AppContent() {
   const [newProfileName, setNewProfileName] = useState(null)
 
   const handleOnboardingComplete = useCallback((data) => {
+    // If professional onboarding, set therapist tier + view mode
+    if (pendingProfessional) {
+      data.subscriptionTier = 'therapist'
+      data.viewMode = 'therapist'
+      setPendingProfessional(false)
+    }
     profileData.completeOnboarding(data)
     setShowIntake(false)
     setShowCalma(false)
@@ -431,7 +443,7 @@ function AppContent() {
     } else if (auth.configured && !auth.user) {
       setShowAccountNudge(true)
     }
-  }, [profileData, calmDown, auth.configured, auth.user])
+  }, [profileData, calmDown, auth.configured, auth.user, pendingProfessional])
 
   // Reset profile (from settings page)
   const handleResetProfile = useCallback((type) => {
@@ -503,7 +515,7 @@ function AppContent() {
   if (!profileData.profile && !showIntake) {
     const hasProfiles = profileData.profiles && profileData.profiles.length > 0
     if (!hasProfiles) {
-      return <Landing onStart={handleNewProfile} auth={auth} onLoginSync={handleLoginSync} syncStatus={sync.syncStatus} />
+      return <Landing onStart={handleNewProfile} onStartProfessional={handleNewProfessional} auth={auth} onLoginSync={handleLoginSync} syncStatus={sync.syncStatus} />
     }
     return (
       <Welcome

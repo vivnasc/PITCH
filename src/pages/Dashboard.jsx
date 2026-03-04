@@ -44,6 +44,7 @@ export default function Dashboard({ profile, progress, reviewWorksheet, addEncou
     ...CAMPO4_ACTIVITIES, ...CAMPO5_ACTIVITIES, ...CAMPO6_ACTIVITIES,
     ...CAMPO7_ACTIVITIES,
   ]
+  const activityNameMap = Object.fromEntries(allActivities.map((a) => [a.id, a.name]))
   const therapyActivities = allActivities.filter((a) => a.therapy)
   const therapyCompleted = therapyActivities.filter((a) => activitiesCompleted[a.id])
   const therapyDomainProgress = SPEECH_THERAPY_DOMAINS.map((domain) => {
@@ -547,7 +548,7 @@ Gerado automaticamente por PITCH
                   <div style={styles.programActivities}>
                     {(prog.activities || []).map((act, i) => (
                       <span key={i} style={styles.programActivity}>
-                        {act.activityId} · {act.frequency}
+                        {activityNameMap[act.activityId] || act.activityId} · {act.frequency === 'daily' ? 'Diário' : act.frequency === '3x-week' ? '3x/sem' : 'Semanal'}
                         {act.notes && ` · ${act.notes}`}
                       </span>
                     ))}
@@ -653,7 +654,7 @@ Gerado automaticamente por PITCH
                         }
                       }}
                     >
-                      {isSelected ? '✓ ' : ''}{actId.replace(/-/g, ' ')}
+                      {isSelected ? '✓ ' : ''}{activityNameMap[actId] || actId.replace(/-/g, ' ')}
                     </button>
                   )
                 })}
@@ -664,7 +665,7 @@ Gerado automaticamente por PITCH
                 <div style={styles.freqList}>
                   {programActivities.map((act, idx) => (
                     <div key={act.activityId} style={styles.freqRow}>
-                      <span style={styles.freqName}>{act.activityId.replace(/-/g, ' ')}</span>
+                      <span style={styles.freqName}>{activityNameMap[act.activityId] || act.activityId.replace(/-/g, ' ')}</span>
                       <select
                         style={styles.freqSelect}
                         value={act.frequency}
